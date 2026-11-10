@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Xmart Dashboard</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#6b7280;--bd:#e5e7eb;--ac:#2563eb;--ac2:#dbeafe;--bad:#dc2626;--good:#16a34a;--warn:#d97706}
+@media(prefers-color-scheme:dark){:root{--bg:#10141c;--card:#1a2030;--tx:#e8ecf4;--mut:#9aa4b5;--bd:#2a3347;--ac:#60a5fa;--ac2:#1e3a5f;--bad:#f87171;--good:#4ade80;--warn:#fbbf24}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,"Noto Sans TC",sans-serif}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--card);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:5}
+h1{font-size:18px;margin:0}small,.mut{color:var(--mut)}
+button{font:inherit;cursor:pointer;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:7px 14px;border-radius:8px}
+button.pri{background:var(--ac);border-color:var(--ac);color:#fff}button.on{background:var(--ac2);border-color:var(--ac);color:var(--ac);font-weight:600}
+nav{display:flex;gap:8px;padding:12px 20px;flex-wrap:wrap}main{padding:0 20px 40px;max-width:1280px;margin:auto}
+.filters{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 14px}.filters label{display:flex;flex-direction:column;font-size:12px;color:var(--mut);gap:3px}
+select,input{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);min-width:130px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.kpi,.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px}.kpi b{display:block;font-size:22px;margin:2px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:12px;margin-bottom:12px}.card h3{margin:0 0 8px;font-size:14px}
+.note{background:var(--ac2);border-radius:8px;padding:8px 10px;font-size:12.5px;margin:6px 0}.warn{background:rgba(217,119,6,.15)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}th,td{padding:5px 6px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}th{color:var(--mut);font-weight:600;position:sticky;top:0;background:var(--card)}
+td.n,th.n{text-align:right;white-space:nowrap}.sc{max-height:380px;overflow:auto}
+.br{display:grid;grid-template-columns:minmax(90px,200px) 1fr auto;gap:8px;align-items:center;margin:4px 0;font-size:12.5px}.bt{background:var(--bd);height:10px;border-radius:5px}.bt i{display:block;height:100%;background:var(--ac);border-radius:5px}
+.cols{display:flex;gap:6px;align-items:flex-end;height:170px;overflow-x:auto;padding-top:18px}.cols>div{flex:1;min-width:34px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;position:relative}.cols i{width:100%;background:var(--ac);border-radius:4px 4px 0 0;display:block}.cols b{font-size:10px;position:absolute;top:-2px}.cols small{font-size:10px;margin-top:3px}
+.up{color:var(--good)}.dn{color:var(--bad)}.tag{padding:1px 7px;border-radius:9px;font-size:11px;background:var(--ac2)}.Low{color:var(--warn)}.Out{color:var(--bad)}.Healthy{color:var(--good)}
+</style></head><body>
+<header><div><h1>Xmart · Store Dashboard <small>v4 · promo planner</small></h1><small id="status">Loading…</small></div>
+<div><button class="pri" id="refresh">⟳ Refresh data</button></div></header>
+<nav id="nav"><button data-tab="sales">1 · Store Sales Performance</button><button data-tab="redeem">2 · Redeemed Points</button><button data-tab="stock">3 · Stock &amp; Promo Planning</button><button data-tab="promo">4 · Promo Planner</button></nav>
+<main id="app"></main>
+<script>
+/* ===== CONFIGURATION ===== */
+const CONFIG={
+  SHEET_ID:'1TdhmH-5Se1YWNbjzHorNL1C4gyCwPi1j4nb3MZ6e0aE',                 // ← paste your Google Sheet ID (the part between /d/ and /edit in its URL). Empty = use data/snapshot.json
+  TABS:{sales:['Sales_Data'],pts:['Point_Redemptions','Points_Redemptions','Points_History'],prod:['Product_Sales_Report','Product_Master'],stock:['Stock_Report','Stock_Data'],sp:['Product_Sales_Stats'],cat:['Category_Map'],prev:['Product_Master_Prev'],wk:['Product_Sales_Weekly']},
+  CUR_DAYS:9,  CUR_LABEL:'1–9 Nov 2026 (assumed)',     // period covered by Product_Master
+  PREV_DAYS:31, PREV_LABEL:'1–31 Oct 2026',    // period covered by Product_Master_Prev (comparison for rising/falling products)
+  STORE_ALIAS:{'新竹明湖館':'Minghu','XMART MINGHU STORE':'Minghu','XM-HC-002':'Minghu','新竹德威館':'Dewei','XMART DEWEI STORE':'Dewei','XM-HC-003':'Dewei','高雄湖內長春館':'Hunei','XMART HUNEI STORE':'Hunei','XM-KH-002':'Hunei','高雄楠梓大學館':'Daxue','XMART DAXUE STORE':'Daxue','XM-KH-001':'Daxue','台南科工一館':'Tainan','X MART TAINAN BRANCH':'Tainan','XM-TN-001':'Tainan'},
+  HEALTHY_X:2,        // healthy stock = available ≥ safety stock × this number
+  SLOW_COVER_DAYS:45  // stock > N days of sales = promo candidate
+};
+/* ======================== */
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sn=n=>CONFIG.STORE_ALIAS[String(n??'').trim()]||String(n??'').trim();
+const N=v=>{const x=parseFloat(String(v??'').replace(/,/g,''));return isNaN(x)?0:x},f0=n=>Math.round(n).toLocaleString('en-US'),money=n=>'NT$ '+f0(n),pc=n=>(n*100).toFixed(1)+'%';
+const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0),uniq=a=>[...new Set(a)];
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const nd=s=>{s=String(s).trim();if(/^\d{4}-\d\d-\d\d/.test(s))return s.slice(0,10);const d=new Date(s);return isNaN(d)?'':iso(d)};
+const wkOf=s=>{const x=new Date(s+'T00:00:00');x.setDate(x.getDate()-(x.getDay()+6)%7);return iso(x)};
+function parseCSV(t){const r=[];let row=[],v='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){v+='"';i++}else q=false}else v+=c}else if(c=='"')q=true;else if(c==','){row.push(v);v=''}else if(c=='\n'){row.push(v);r.push(row);row=[];v=''}else if(c!='\r')v+=c}if(v!==''||row.length){row.push(v);r.push(row)}return r}
+const objs=t=>(t[0]?t.slice(1).map(r=>Object.fromEntries(t[0].map((h,i)=>[h,r[i]]))):[]);
+/* ---------- load ---------- */
+const OK={sp:t=>t[0]?.includes('Amount sold'),sales:t=>t[0]?.includes('營業總額'),pts:t=>t[0]?.includes('Transaction Type'),prod:t=>t[0]?.[0]=='商品編號'&&t[0].length>=11,stock:t=>t[0]?.includes('可用庫存'),cat:t=>t[0]?.includes('大分類'),prev:t=>t[0]?.[0]=='商品編號'&&t[0].length>=11,wk:t=>t[0]?.includes('銷售淨額')};
+const CORE=['prod','stock'];let D={},S={tab:'sales'};
+async function live(name){const r=await fetch(`https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(name)}&_=${Date.now()}`);if(!r.ok)throw Error(r.status);const t=parseCSV(await r.text());while(t.length&&t[0].every(c=>!String(c).trim()))t.shift();return t}
+async function load(){
+  $('#status').textContent='Loading data…';
+  let snap={};const em=document.getElementById('embedded');if(em)try{snap=JSON.parse(em.textContent)}catch(e){}
+  if(!Object.keys(snap).length)try{snap=await (await fetch('data/snapshot.json?'+Date.now())).json()}catch(e){}
+  if(!Object.keys(snap).length&&!CONFIG.SHEET_ID){$('#status').textContent='No data: snapshot not found.';return}
+  const T={};for(const k in CONFIG.TABS){const n=CONFIG.TABS[k].find(n=>snap[n]);T[k]=n?snap[n]:[]}let src='Snapshot (data/snapshot.json)',fail=[],how={};
+  if(CONFIG.SHEET_ID){await Promise.all(Object.keys(CONFIG.TABS).map(async k=>{let got=false;for(const n of CONFIG.TABS[k]){try{const t=await live(n);if(OK[k](t)){T[k]=t;got=true;how[k]='live';break}}catch(e){}}if(!got){how[k]=T[k].length?'snapshot':'missing';if(CORE.includes(k))fail.push(CONFIG.TABS[k][0])}}));
+    src=fail.length?'⚠ Could not read: '+fail.join(', ')+' (using snapshot). Make sure the sheet is shared as "Anyone with the link – Viewer".':'Google Sheets'+' · live: '+Object.keys(how).filter(k=>how[k]=='live').map(k=>CONFIG.TABS[k][0]).join(', ')+(Object.keys(how).some(k=>how[k]=='snapshot')?' · from snapshot (tab not found in sheet): '+Object.keys(how).filter(k=>how[k]=='snapshot').map(k=>CONFIG.TABS[k][0]).join(', '):'')}
+  build(T);$('#status').textContent='Source: '+src+' · updated '+new Date().toLocaleString('en-GB');render()}
+function prodMap(t){const m=new Map();(t||[]).slice(1).forEach(r=>{const id=String(r[0]).trim();if(/^X/.test(id))m.set(id,{id,name:r[1],q:N(r[9]),a:N(r[10])})});return m}
+function build(T){
+  let last='';D.sales=(T.sales||[]).slice(1).filter(r=>N(r[6])||N(r[5])).map(r=>{if(r[0])last=nd(r[0]);return{d:last,w:wkOf(last),store:sn(r[4]),tx:N(r[5]),amt:N(r[6])}});
+  D.sp=(T.sp||[]).slice(1).filter(r=>r[2]).map(r=>({store:sn(r[1]||r[0]),id:String(r[2]).trim(),name:r[3],mem:N(r[4]),q:N(r[7]),a:N(r[8]),tx:N(r[9])}));D.spIdx=new Map();D.sp.forEach(x=>D.spIdx.set(x.id+'|'+x.store,x));
+  const bs={};(D.sp.length?D.sp.map(x=>({store:x.store,amt:x.a})):D.sales).forEach(s=>bs[s.store]=(bs[s.store]||0)+s.amt);D.stores=Object.keys(bs).sort((a,b)=>bs[b]-bs[a]);
+  D.prod=prodMap(T.prod);D.prev=prodMap(T.prev);
+  const ch=T.cat[0]||[],ib=ch.indexOf('大分類'),im=ch.indexOf('中分類');D.cat=new Map(T.cat.slice(1).map(r=>[String(r[0]).trim(),{big:r[ib]||'(Uncategorized)',mid:r[im]}]));
+  const h=T.stock[0]||[],ix=n=>h.indexOf(n),ic=ix('大分類名稱');
+  D.stock=T.stock.slice(1).filter(r=>r[ix('門市')]).map(r=>{const id=String(r[ix('商品編號')]).trim(),avail=N(r[ix('可用庫存')]),safety=N(r[ix('安全庫存')]);const big=(ic>=0&&r[ic])||D.cat.get(id)?.big||'(Uncategorized)';if(ic>=0&&r[ic])D.cat.set(id,{big});return{store:sn(r[ix('門市')]),id,name:r[ix('商品名稱')],avail,a:Math.max(avail,0),safety,price:N(r[ix('售價')]),cost:N(r[ix('成本')]),big}});
+  D.wk=objs(T.wk).map(o=>{const g=(...k)=>{for(const x of k)if(o[x]!==undefined&&o[x]!=='')return o[x];return''};const d=nd(g('Week_Start','Week','Date','日期'));return{w:d?wkOf(d):'',store:g('Store','門市','門市名稱'),id:String(g('商品編號','Product_ID')).trim(),name:g('商品名稱','Product_Name'),q:N(g('銷售淨數量','Qty')),a:N(g('銷售淨額','Amount'))}}).filter(x=>x.w);
+  D.nameCat=new Map();D.stock.forEach(r=>{const k=nk(r.name);if(k&&r.big&&!D.nameCat.has(k))D.nameCat.set(k,r.big)});_rc.clear();
+  const raw=objs(T.pts).map(o=>{const m=String(o['Message']||'');let type,status;
+    if(/reversed/i.test(m)){type='Reversal';status='reversed'}else if(/^User claiming voucher/.test(m)){type='Voucher';status='completed'}else if(/order points held/.test(m)){type='LELE Marketplace';status='held'}else if(/LELE marketplace/i.test(m)){type='LELE Marketplace';status='completed'}else{type='Lainnya';status='completed'}
+    let meta={};try{meta=JSON.parse(o['Metadata']||'{}')}catch(e){}
+    const items=type=='Voucher'?[meta.voucher_name||m.replace(/^User claiming voucher - /,'')]:((meta.product_names||[]).length?meta.product_names:['—']),lk=type=='Voucher'?[(meta.voucher_name_translations||{})['zh-tw']||items[0]]:items,cats=lk.map((n,i)=>n=='—'?'(no item info)':rcat(n,type,items[i])),prod=items.join(', '),d=String(o['Transaction Date']||'');
+    return{pts:Math.abs(N(o['Points'])),d:d.slice(0,10),month:d.slice(0,7),src:o['Source']||'(no source)',store:sn(o['Store Name']),type,status,prod,items,cats,order:meta.order_id}});
+  const done=new Set(raw.filter(r=>r.status=='completed'&&r.order).map(r=>r.order));D.pts=raw.filter(r=>!(r.status=='held'&&done.has(r.order)));D.ptsDupHold=raw.length-D.pts.length}
+/* ---------- ui helpers ---------- */
+const kpi=(l,v,s='')=>`<div class="kpi"><small>${l}</small><b>${v}</b><small>${s}</small></div>`;
+const card=(t,b,x='')=>`<div class="card" ${x}><h3>${t}</h3>${b}</div>`;
+const bars=(rows,fmt=f0)=>{const mx=Math.max(...rows.map(r=>r[1]),1);return rows.length?rows.map(r=>`<div class="br"><span title="${esc(r[0])}">${esc(String(r[0]).slice(0,34))}</span><div class="bt"><i style="width:${Math.max(r[1]/mx*100,1)}%"></i></div><span>${fmt(r[1])}</span></div>`).join(''):'<small>No data</small>'};
+const cols=(rows,fmt=f0)=>{const mx=Math.max(...rows.map(r=>r[1]),1);return`<div class="cols">${rows.map(r=>`<div><b>${fmt(r[1])}</b><i style="height:${Math.max(r[1]/mx*85,1)}%"></i><small>${esc(r[0])}</small></div>`).join('')}</div>`};
+const tbl=(h,rows,nc=[])=>`<div class="sc"><table><tr>${h.map((x,i)=>`<th class="${nc.includes(i)?'n':''}">${x}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map((x,i)=>`<td class="${nc.includes(i)?'n':''}">${x}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${h.length}"><small>No data</small></td></tr>`}</table></div>`;
+const sel=(k,l,opts,v)=>`<label>${l}<select data-k="${k}">${opts.map(o=>`<option value="${esc(o[0])}"${o[0]==v?' selected':''}>${esc(o[1])}</option>`).join('')}</select></label>`;
+const chg=x=>x==null?'<span class="tag">new</span>':`<span class="${x>=0?'up':'dn'}">${x>=0?'▲':'▼'} ${Math.abs(x*100).toFixed(0)}%</span>`;
+const group=(a,kf,init,add)=>{const m=new Map();a.forEach(x=>{const k=kf(x);if(!m.has(k))m.set(k,init());add(m.get(k),x)});return m};
+const nk=x=>String(x||'').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]/g,''),TEL=/PREPAID|INTERNET CARD|上網卡|儲值卡|TOP-UP/i,CAT_EN={'冷凍冰品':'Frozen / ice cream','常溫飲料':'Ambient drinks','休閒食品':'Snacks','乾貨與常備食品':'Dry & staple food','個人家居用品':'Personal & home care','營業與門市用品':'Store supplies'},catLabel=c=>CAT_EN[c]?CAT_EN[c]+' · '+c:c,_rc=new Map();
+function rcat(n,type,alt){n=String(n||'');const t=n+' '+String(alt||'');if(TEL.test(t))return 'Telecom (SIM / top-up)';const k=nk(n);if(_rc.has(k))return _rc.get(k);let c=D.nameCat.get(k);if(!c&&k.length>5)for(const [kk,v] of D.nameCat)if(kk.length>5&&(kk.includes(k)||k.includes(kk))){c=v;break}
+  if(!c&&/AICE|ice pop|ice cream|ice bar/i.test(t))c='冷凍冰品';if(!c&&/sparkling water|juice|tea\b|coffee|coconut water|milk drink/i.test(t))c='常溫飲料';
+  c=c||(type=='Voucher'?'Other (voucher)':'Other (LELE)');_rc.set(k,c);return c}
+const bigOf=id=>D.cat.get(id)?.big||'(Uncategorized)';
+/* ---------- 1. SALES ---------- */
+function rSales(){
+  const useSP=D.sp.length>0,wks=useSP?[]:uniq(D.sales.map(s=>s.w)).sort(),inCat=id=>!S.cat||bigOf(id)==S.cat,n=D.stores.length,div=S.store?n:1;
+  const cats=uniq([...D.prod.keys(),...D.sp.map(x=>x.id)].map(bigOf)).sort(),sw=D.sales.filter(s=>!S.week||s.w==S.week),spS=D.sp.filter(x=>!S.store||x.store==S.store);
+  let st,tot,tx=0,items,itSub='';
+  if(useSP){st=[...group(D.sp,x=>x.store,()=>({amt:0,q:0,sku:new Set()}),(g,x)=>{g.amt+=x.a;g.q+=x.q;if(x.q>0)g.sku.add(x.id)})].sort((a,b)=>b[1].amt-a[1].amt);tot=sum(spS,x=>x.a);items=sum(spS,x=>x.q);itSub=CONFIG.CUR_LABEL}
+  else{const ss=sw.filter(s=>!S.store||s.store==S.store);tot=sum(ss,s=>s.amt);tx=sum(ss,s=>s.tx);st=[...group(sw,s=>s.store,()=>({amt:0,tx:0,days:new Set()}),(g,s)=>{g.amt+=s.amt;g.tx+=s.tx;g.days.add(s.d)})].sort((a,b)=>b[1].amt-a[1].amt);
+    if(D.wk.length){items=sum(D.wk.filter(x=>(!S.week||x.w==S.week)&&(!S.store||x.store==S.store)),x=>x.q);itSub='from Product_Sales_Weekly'}else{items=sum([...D.prod.values()],p=>p.q);itSub=`${CONFIG.CUR_LABEL}, all branches (product data is not yet weekly / per branch)`}}
+  const all=sum(st,x=>x[1].amt),base=useSP?[...group(spS,x=>x.id,()=>({q:0,a:0,name:''}),(g,x)=>{g.q+=x.q;g.a+=x.a;g.name=x.name})].map(([id,g])=>({id,...g})):[...D.prod.values()];
+  const P=base.filter(p=>inCat(p.id)),bm=new Map(base.map(p=>[p.id,p])),pr=p=>`${esc(p.name)}<br><small>${p.id}</small>`;
+  const ids=uniq([...bm.keys(),...D.prev.keys()]).filter(inCat).map(id=>{const c=bm.get(id),p=D.prev.get(id),cr=(c?.a||0)/CONFIG.CUR_DAYS,pr=(p?.a||0)/CONFIG.PREV_DAYS/div;return{name:(c||p).name,cr,pr,d:cr-pr,pc:pr>0?cr/pr-1:null}});
+  const row=x=>[esc(x.name),f0(x.pr),f0(x.cr),chg(x.pc)];
+  const cg=[...group(base,p=>bigOf(p.id),()=>({a:0,q:0,pa:0}),(g,p)=>{g.a+=p.a;g.q+=p.q})];D.prev.forEach(p=>{const g=cg.find(x=>x[0]==bigOf(p.id));if(g)g[1].pa+=p.a/div});cg.sort((a,b)=>b[1].a-a[1].a);const ca=sum(cg,x=>x[1].a);
+  let bsSrc,bsLabel;if(D.wk.length){const wl=uniq(D.wk.map(x=>x.w)).sort(),w=S.week||wl[wl.length-1];bsSrc=[...group(D.wk.filter(x=>x.w==w&&(!S.store||x.store==S.store)),x=>x.id,()=>({q:0,a:0,name:''}),(g,x)=>{g.q+=x.q;g.a+=x.a;g.name=x.name;})].map(([id,g])=>({id,...g}));bsLabel=`Week ${w}${S.store?' · '+S.store:' · all branches'}`}else{bsSrc=base;bsLabel=`${CONFIG.CUR_LABEL}${S.store?' · '+S.store:' · all branches'} – no weekly data yet`}
+  const bc=[...group(bsSrc,p=>bigOf(p.id),()=>[],(g,p)=>g.push(p))].map(([c,l])=>[c,l.sort((a,b)=>b.a-a.a).slice(0,3),sum(l,x=>x.a)]).sort((a,b)=>b[2]-a[2]).filter(x=>!S.cat||x[0]==S.cat);
+  const wkTop=D.wk.length?bsSrc.filter(p=>inCat(p.id)).sort((a,b)=>b.q-a.q).slice(0,10):[];
+  const byBranch=useSP?D.stores.map(b=>[b,[...group(D.sp.filter(x=>x.store==b&&inCat(x.id)),x=>x.id,()=>({a:0,q:0,name:''}),(g,x)=>{g.a+=x.a;g.q+=x.q;g.name=x.name})].sort((a,c)=>c[1].q-a[1].q).slice(0,5)]):[];
+  const mem=useSP?sum(spS,x=>x.mem)/(sum(spS,x=>x.q)||1):0;
+  return `<div class="filters">${wks.length?sel('week','Week (Monday)',[['','All weeks'],...wks.map(w=>[w,w])],S.week):''}${sel('store','Branch',[['','All branches'],...D.stores.map(s=>[s,s])],S.store)}${sel('cat','Category',[['','All categories'],...cats.map(c=>[c,c])],S.cat)}</div>
+  <div class="kpis">${kpi('Total sales',money(tot),useSP?CONFIG.CUR_LABEL:`${uniq(sw.map(s=>s.d)).length} days of data`)}${useSP?kpi('Total items sold',f0(items),'SKUs sold: '+f0(uniq(spS.filter(x=>x.q>0).map(x=>x.id)).length))+kpi('Average price per item',money(items?tot/items:0))+kpi('Member purchases',pc(mem),'of items sold (cash member)'):kpi('Total transactions',f0(tx))+kpi('Average transaction value',money(tx?tot/tx:0))+kpi('Total items sold',f0(items),itSub)}${kpi('Best branch',esc(st[0]?.[0]||'-'),st[0]?money(st[0][1].amt):'')}</div>
+  ${useSP?`<div class="note">Branch × product data has no dates and no daily transaction counts, so <b>transactions, average transaction value and weekly sales trend</b> need a daily <b>Sales_Data</b> tab (date × branch). Period assumed: <b>${CONFIG.CUR_LABEL}</b> – set <code>CUR_DAYS</code> in CONFIG to the real number of days.</div>`:''}
+  <div class="grid">${card('Comparison of '+n+' branches',useSP?tbl(['Branch','Sales','Items sold','SKUs sold','Avg price/item','Sales/day','Share'],st.map(([b,g])=>[esc(b),f0(g.amt),f0(g.q),f0(g.sku.size),f0(g.q?g.amt/g.q:0),f0(g.amt/CONFIG.CUR_DAYS),pc(g.amt/(all||1))]),[1,2,3,4,5,6]):tbl(['Branch','Sales','Transactions','Avg txn','Sales/day','Days','Share'],st.map(([b,g])=>[esc(b),f0(g.amt),f0(g.tx),f0(g.tx?g.amt/g.tx:0),f0(g.amt/g.days.size),g.days.size,pc(g.amt/(all||1))]),[1,2,3,4,5,6])+`<div class="note">Use <b>Sales/day</b> for a fair comparison – branches may have a different number of days of data.</div>`)}
+  ${card('Sales by branch',bars(st.map(([b,g])=>[b,g.amt]),money))}</div>
+  ${wks.length?`<div class="grid">${card('Weekly trend by branch',tbl(['Week','Days',...D.stores.map(esc),'Total'],wks.map(w=>{const r=D.sales.filter(s=>s.w==w);return[w,uniq(r.map(s=>s.d)).length,...D.stores.map(b=>f0(sum(r.filter(s=>s.store==b),s=>s.amt))),f0(sum(r,s=>s.amt))]}),D.stores.map((_,i)=>i+1).concat([D.stores.length+1,D.stores.length+2])))}${card('Total sales per week',cols(wks.map(w=>[w.slice(5),sum(D.sales.filter(s=>s.w==w),s=>s.amt)])))}</div>`:''}
+  <div class="grid">${card('🏆 Best-selling products (sales)'+(S.store?' · '+esc(S.store):''),tbl(['Product','Qty','Sales'],[...P].sort((a,b)=>b.a-a.a).slice(0,15).map(p=>[pr(p),f0(p.q),f0(p.a)]),[1,2]))}${card('🏆 Best-selling products (qty)'+(S.store?' · '+esc(S.store):''),tbl(['Product','Qty','Sales'],[...P].sort((a,b)=>b.q-a.q).slice(0,15).map(p=>[pr(p),f0(p.q),f0(p.a)]),[1,2]))}</div>
+  ${useSP?card('Top 5 products per branch (by qty)',tbl(['Branch','Top 5'],byBranch.map(([b,l])=>[esc(b),l.map(([id,g],i)=>`${i+1}. ${esc(g.name)} <small>(${f0(g.q)})</small>`).join('<br>')])) ):''}
+  <div class="grid">${card('⚠ Low demand (sold, but the least)',tbl(['Product','Qty','Sales'],P.filter(p=>p.q>0&&p.a>0).sort((a,b)=>a.q-b.q||a.a-b.a).slice(0,15).map(p=>[pr(p),f0(p.q),f0(p.a)]),[1,2])+`<div class="note">${f0(P.filter(p=>p.q>0&&p.q<=2).length)} products sold ≤2 units in the period.</div>`)}${card('Product categories',tbl(['Category','Sales','Share','Qty','Sales/day vs '+CONFIG.PREV_LABEL],cg.map(([c,g])=>[esc(c),f0(g.a),pc(g.a/(ca||1)),f0(g.q),chg(g.pa>0?(g.a/CONFIG.CUR_DAYS)/(g.pa/CONFIG.PREV_DAYS)-1:null)]),[1,2,3]))}</div>
+  <div class="grid">${card('📈 Rising products (sales/day)',tbl(['Product',CONFIG.PREV_LABEL,CONFIG.CUR_LABEL,'Δ'],ids.filter(x=>x.d>0).sort((a,b)=>b.d-a.d).slice(0,12).map(row),[1,2,3])+`<div class="note">Compared per day because the periods differ in length (${CONFIG.PREV_DAYS} vs ${CONFIG.CUR_DAYS} days).${S.store?' Previous period is chain-wide ÷ '+n+' branches (estimate).':''} A short current period and seasonality can distort this.</div>`)}${card('📉 Falling products (sales/day)',tbl(['Product',CONFIG.PREV_LABEL,CONFIG.CUR_LABEL,'Δ'],ids.filter(x=>x.d<0).sort((a,b)=>a.d-b.d).slice(0,12).map(row),[1,2,3]))}</div>
+  ${card('Best sellers by category · '+esc(bsLabel),(D.wk.length?'':`<div class="note warn">There is no date in the product data, so <b>weekly</b> best sellers cannot be calculated yet. Add a <b>Product_Sales_Weekly</b> tab (see README) and this section automatically becomes weekly + per branch.</div>`)+(wkTop.length?`<h3>Top 10 this week (qty)</h3>`+tbl(['Product','Qty','Sales'],wkTop.map(p=>[pr(p),f0(p.q),f0(p.a)]),[1,2]):'')+tbl(['Category','Sales','#1','#2','#3'],bc.map(([c,l,t])=>[esc(c),f0(t),...[0,1,2].map(i=>l[i]?`${esc(l[i].name)} <small>(${f0(l[i].q)})</small>`:'')]),[1]))}`}
+/* ---------- 2. REDEEM ---------- */
+function rRedeem(){
+  if(!D.pts.length)return '<div class="note warn">No points data found. Add a tab named <b>Points_Redemptions</b> to the Google Sheet (or check that data/snapshot.json was uploaded).</div>';
+  const R=D.pts,months=uniq(R.map(r=>r.month)).sort(),stores=uniq(R.map(r=>r.store).filter(Boolean)).sort(),srcs=uniq(R.map(r=>r.src)).sort(),types=uniq(R.map(r=>r.type)).sort(),rcats=uniq(R.flatMap(r=>r.cats)).sort();
+  const pg=S.pg===undefined?'goods':S.pg,isT=r=>r.cats.some(c=>c.startsWith('Telecom')),F0=R.filter(r=>(!S.pm||r.month==S.pm)&&(!S.ps||(S.ps=='_none'?!r.store:r.store==S.ps))&&(!S.pr||r.src==S.pr)&&(!S.pt||r.type==S.pt)&&(!S.pk||r.cats.includes(S.pk))),F=F0.filter(r=>!pg||(pg=='goods'?!isT(r):isT(r)));
+  const C0=F0.filter(r=>r.status=='completed'),T0=sum(C0.filter(isT),r=>r.pts),T0n=C0.filter(isT).length;
+  const C=F.filter(r=>r.status=='completed'),H=F.filter(r=>r.status=='held'),V=F.filter(r=>r.status=='reversed'),VO=C.filter(r=>r.type=='Voucher'),LE=C.filter(r=>r.type=='LELE Marketplace');
+  const ex=a=>a.flatMap(r=>r.items.map((n,i)=>({...r,prod:n,cat:r.cats[i],pts:r.pts/r.items.length}))),catg=[...group(ex(C),r=>r.cat,()=>({n:0,p:0,v:0,l:0}),(g,x)=>{g.n++;g.p+=x.pts;if(x.type=='Voucher')g.v++;else g.l++})].sort((a,b)=>b[1].p-a[1].p),tot=sum(C,r=>r.pts)||1,tel=catg.find(x=>x[0].startsWith('Telecom'));
+  const grp=(a,kf)=>[...group(a,kf,()=>({n:0,p:0}),(g,x)=>{g.n++;g.p+=x.pts})].sort((a,b)=>b[1].p-a[1].p);
+  const days=uniq(F.map(r=>r.d)).sort(),withSt=C.filter(r=>r.store),noSt=C.length-withSt.length,dr=R.length?`${R.map(r=>r.d).sort()[0]} to ${R.map(r=>r.d).sort().slice(-1)[0]}`:'-';
+  return `<div class="filters">${sel('pm','Month / period',[['','All'],...months.map(m=>[m,m])],S.pm)}${sel('ps','Store',[['','All'],['_none','(no store info)'],...stores.map(m=>[m,m])],S.ps)}${sel('pr','Source',[['','All'],...srcs.map(m=>[m,m])],S.pr)}${sel('pt','Redemption type',[['','All'],...types.map(m=>[m,m])],S.pt)}${sel('pg','Item group',[['goods','Goods only (exclude telecom)'],['','All (incl. telecom)'],['tel','Telecom only']],pg)}${sel('pk','Category',[['','All'],...rcats.map(m=>[m,catLabel(m)])],S.pk)}</div>
+  <div class="note">${pg=='goods'?'Showing <b>goods only</b> – telecom cards (SIM / top-up) are excluded from all numbers below except the telecom-share KPI. Change “Item group” to include them. ':''}Points data covers <b>${dr}</b> (${R.length} transactions). “Redeemed” = status <b>completed</b> (vouchers + LELE deducted). <i>Held</i> and <i>reversed</i> are shown separately to avoid double counting${D.ptsDupHold?` · ${D.ptsDupHold} held rows that already became completed are hidden`:''}.</div>
+  <div class="kpis">${kpi('Total points redeemed',f0(sum(C,r=>r.pts)),'status completed')}${kpi('Redemption transactions',f0(C.length))}${kpi('Telecom (SIM / top-up) share',pc(T0/(sum(C0,r=>r.pts)||1)),f0(T0)+' points · '+f0(T0n)+' items'+(pg=='goods'?' – excluded below':''))}${kpi('Voucher redeemed',f0(VO.length),f0(sum(VO,r=>r.pts))+' points')}${kpi('LELE marketplace (points deducted)',f0(sum(LE,r=>r.pts)),LE.length+' orders')}${kpi('Held',f0(sum(H,r=>r.pts)),H.length+' transactions')}${kpi('Reversed',f0(sum(V,r=>r.pts)),V.length+(V.length==1?' transaction':' transactions'))}</div>
+  <div class="grid">${card('Daily trend (completed points)',cols(days.map(d=>[d.slice(5),sum(C.filter(r=>r.d==d),r=>r.pts)])))}${card('Monthly trend',cols(months.map(m=>[m,sum(C.filter(r=>r.month==m),r=>r.pts)])))}</div>
+  <div class="grid">${card('Redemption by category (completed)',bars(catg.map(([k,g])=>[catLabel(k),g.p]))+tbl(['Category','Items','Voucher','LELE','Points','Share'],catg.map(([k,g])=>[esc(catLabel(k)),g.n,g.v,g.l,f0(g.p),pc(g.p/tot)]),[1,2,3,4,5])+`<div class="note">LELE items are grouped by keyword (SIM / internet / top-up cards = Telecom). Vouchers take the category of the matching product in Stock_Report; unmatched ones show as “Other”. Points of multi-item orders are split evenly.</div>`)}${pg=='goods'?'':card('Telecom cards redeemed (by item)',tbl(['Item','Redemptions','Points'],grp(ex(C).filter(r=>r.cat.startsWith('Telecom')),r=>r.prod).map(([k,g])=>[esc(k),g.n,f0(g.p)]),[1,2]))}}</div>
+  <div class="grid">${card('Most redeemed products (count)',tbl(['Product','Redemptions','Points'],grp(ex(C),r=>r.prod).sort((a,b)=>b[1].n-a[1].n).slice(0,15).map(([k,g])=>[esc(k),g.n,f0(g.p)]),[1,2]))}
+  ${card('Top stores by redemption',bars(grp(withSt,r=>r.store).map(([k,g])=>[k,g.p]))+`<div class="note warn">${noSt} of ${C.length} transactions have no store info → <b>not included</b> in the branch ranking.</div>`)}</div>
+  <div class="grid">${card('By source',bars(grp(C,r=>r.src).map(([k,g])=>[k+` (${g.n})`,g.p])))}${card('Redemption status',bars([['completed',sum(C,r=>r.pts)],['held',sum(H,r=>r.pts)],['reversed',sum(V,r=>r.pts)]]))}</div>
+  <div class="grid">${card('Voucher redeemed',tbl(['Voucher','Count','Points'],grp(ex(VO),r=>r.prod).map(([k,g])=>[esc(k),g.n,f0(g.p)]),[1,2]))}${card('LELE Marketplace / point deduction',tbl(['Item','Orders','Points'],grp(ex(LE),r=>r.prod).map(([k,g])=>[esc(k),g.n,f0(g.p)]),[1,2]))}</div>`}
+/* ---------- 3. STOCK & PROMO ---------- */
+function rStock(){
+  const B=D.stores,Hx=S.hx||CONFIG.HEALTHY_X,cats=uniq(D.stock.map(r=>r.big)).sort(),inCat=r=>!S.cat||r.big==S.cat;
+  const cls=r=>r.a<=0?(r.safety>0?'Out':'Empty'):r.safety>0&&r.a<r.safety?'Low':r.safety>0&&r.a>=r.safety*Hx?'Healthy':'OK';
+  const rowsAll=D.stock.filter(inCat),rows=rowsAll.filter(r=>B.includes(r.store));rows.forEach(r=>r.st=cls(r));
+  const sale=id=>D.prod.get(id),spx=(id,s)=>D.spIdx.get(id+'|'+s),sq=(id,s)=>D.sp.length?(spx(id,s)?.q||0):(sale(id)?.q||0),sa=(id,s)=>D.sp.length?(spx(id,s)?.a||0):(sale(id)?.a||0),act=r=>r.a>0||sq(r.id,r.store)>0,nWk=uniq(D.wk.map(x=>x.w)).length;
+  const vel=(id,store)=>{if(D.sp.length)return sq(id,store)/CONFIG.CUR_DAYS;if(D.wk.length)return sum(D.wk.filter(x=>x.id==id&&x.store==store),x=>x.q)/(nWk*7);return(sale(id)?.q||0)/CONFIG.CUR_DAYS/B.length};
+  const prods=[...group(rows,r=>r.id,()=>({st:{}}),(g,r)=>{g.id=r.id;g.name=r.name;g.price=r.price;g.big=r.big;g.st[r.store]=r})].map(x=>x[1]);
+  const stocked=prods.filter(p=>B.some(b=>p.st[b]?.a>0)),nb=p=>B.filter(b=>p.st[b]?.a>0).length,allB=stocked.filter(p=>nb(p)==B.length),part=stocked.filter(p=>nb(p)<B.length);
+  const sf=r=>!S.store||r.store==S.store,val=r=>r.a*Math.max(r.price,0);
+  const locs=uniq(rowsAll.map(r=>r.store)),nameLoc=l=>B.includes(l)?esc(l):`<i>${esc(l)}</i>`;
+  const cmp=locs.sort((a,b)=>B.includes(b)-B.includes(a)).map(l=>{const r=rowsAll.filter(x=>x.store==l);r.forEach(x=>x.st=cls(x));const sf2=r.filter(x=>x.safety>0&&act(x));return[nameLoc(l),f0(r.filter(x=>x.a>0).length),f0(sum(r,x=>x.a)),f0(sum(r,val)),r.filter(x=>x.st=='Low'&&act(x)).length,r.filter(x=>x.st=='Out'&&act(x)).length,sf2.length?pc(sf2.filter(x=>x.st=='Healthy').length/sf2.length):'-']});
+  const cg=[...group(rows,r=>r.big,()=>({u:0,v:0,low:0,b:{}}),(g,r)=>{g.u+=r.a;g.v+=val(r);if((r.st=='Low'||r.st=='Out')&&act(r))g.low++;g.b[r.store]=(g.b[r.store]||0)+r.a})].sort((a,b)=>b[1].u-a[1].u);
+  const low=rows.filter(r=>(r.st=='Low'||r.st=='Out')&&sf(r)&&sq(r.id,r.store)>0).sort((a,b)=>sa(b.id,b.store)-sa(a.id,a.store));
+  const over=rows.filter(r=>sf(r)&&r.a>0&&r.price>0&&(r.safety==0||r.a>=r.safety*Hx)).map(r=>{const v=vel(r.id,r.store);return{r,v,cover:v>0?r.a/v:Infinity}}).filter(x=>x.cover>CONFIG.SLOW_COVER_DAYS).sort((a,b)=>val(b.r)-val(a.r));
+  const push=rows.filter(r=>sf(r)&&r.st=='Healthy'&&sa(r.id,r.store)>0).sort((a,b)=>sa(b.id,b.store)-sa(a.id,a.store)).slice(0,15);
+  const cov=c=>c==Infinity?'∞ (not selling)':f0(c)+' d',stCls=r=>`<span class="${r.st}">${r.st}</span>`,pn=(n,id)=>`${esc(n)}<br><small>${id}</small>`;
+  return `<div class="filters">${sel('store','Branch (action lists)',[['','All branches'],...B.map(s=>[s,s])],S.store)}${sel('cat','Category',[['','All'],...cats.map(c=>[c,c])],S.cat)}<label>Healthy stock = safety ×<input type="number" step="0.5" min="1" data-k="hx" value="${Hx}"></label></div>
+  <div class="note">Definitions: <b>Low</b> = available &lt; safety stock · <b>Out</b> = ≤0 (safety &gt;0) · <b>Healthy</b> = ≥ safety × ${Hx} · negative stock is treated as 0. Low/Out only count “active” SKUs (with stock or sales) so catalog items a branch never sells don’t inflate the numbers. Branches = the ${B.length} stores in Sales_Data; vending machines / other locations appear in italics in the comparison table only.</div>
+  <div class="kpis">${kpi('SKUs in stock (5 branches)',f0(stocked.length))}${kpi('Total units available',f0(sum(rows,r=>r.a)))}${kpi('Stock value (selling price)',money(sum(rows,val)))}${kpi('SKU-branch Low',f0(rows.filter(r=>r.st=='Low'&&act(r)).length),'Out: '+f0(rows.filter(r=>r.st=='Out'&&act(r)).length))}${kpi('Available in all branches',f0(allB.length),'Only some branches: '+f0(part.length))}${kpi('Negative stock records',f0(rows.filter(r=>r.avail<0).length),'needs checking / stock count')}</div>
+  <div class="grid">${card('Stock comparison across branches',tbl(['Location','SKUs in stock','Units','Value','Low','Out','% healthy'],cmp,[1,2,3,4,5,6]))}${card('Stock by category (units per branch)',tbl(['Category',...B.map(b=>esc(b)),'Total','Low/Out'],cg.map(([c,g])=>[esc(c),...B.map(b=>f0(g.b[b]||0)),f0(g.u),g.low]),B.map((_,i)=>i+1).concat([B.length+1,B.length+2])))}</div>
+  ${card('Products available only in some branches (by highest sales)',tbl(['Product',...B.map(b=>esc(b)),'# branches'],part.sort((a,b)=>(sale(b.id)?.a||0)-(sale(a.id)?.a||0)).slice(0,25).map(p=>[pn(p.name,p.id),...B.map(b=>p.st[b]?.a>0?f0(p.st[b].a):'<span class="dn">✗</span>'),nb(p)+'/'+B.length]),B.map((_,i)=>i+1)))}
+  <div class="grid">${card(`🔻 Needs restock (${low.length} SKU-branch, by sales)`,tbl(['Product','Branch','Stock','Safety','Days of cover','Suggested order'],low.slice(0,30).map(r=>{const v=vel(r.id,r.store);return[pn(r.name,r.id),esc(r.store),`<span class="${r.st}">${f0(r.a)}</span>`,f0(r.safety),v>0?f0(r.a/v)+' d':'-',f0(Math.max(Math.ceil(r.safety*Hx-r.a),0))]}),[2,3,4,5])+`<div class="note">Only products with sales are listed. Suggested order = quantity to reach the healthy level.</div>`)}
+  ${card(`🏷 Promo candidates: overstock / slow-moving (${over.length})`,tbl(['Product','Branch','Stock','Value','Cover','Suggestion'],over.slice(0,30).map(x=>[pn(x.r.name,x.r.id),esc(x.r.store),f0(x.r.a),f0(val(x.r)),cov(x.cover),x.v==0?'Clearance / bundling':'Light discount']),[2,3,4])+`<div class="note">Cover = stock ÷ daily sales ${(D.wk.length||D.sp.length)?'(per branch)':'(estimate: total sales ÷ '+B.length+' branches, because product data is not yet per branch)'}. Threshold: &gt;${CONFIG.SLOW_COVER_DAYS} days.</div>`)}</div>
+  ${card('⭐ Best sellers with healthy stock – good for promo / feature',tbl(['Product','Branch','Stock','Qty sold','Sales'],push.map(r=>[pn(r.name,r.id),esc(r.store),f0(r.a),f0(sq(r.id,r.store)),f0(sa(r.id,r.store))]),[2,3,4]))}`}
+/* ---------- 4. PROMO PLANNER ---------- */
+function loadPl(){if(!S.pl){try{S.pl=JSON.parse(localStorage.getItem('xmart_promo')||'[]')}catch(e){S.pl=[]}}}
+function savePl(){try{localStorage.setItem('xmart_promo',JSON.stringify(S.pl))}catch(e){}}
+function pinfo(id){if(!D.pinfo){D.pinfo=new Map();D.stock.forEach(r=>{const o=D.pinfo.get(r.id)||{name:r.name,price:0,cost:0};if(r.price>0&&!o.price)o.price=r.price;if(r.cost>0&&!o.cost)o.cost=r.cost;D.pinfo.set(r.id,o)})}
+  const o=D.pinfo.get(id)||{},p=D.prod.get(id);return{ok:!!(D.pinfo.get(id)||p),name:o.name||p?.name||id,price:o.price||(p&&p.q>0?Math.round(p.a/p.q):0),cost:o.cost||0,vel:(p?.q||0)/CONFIG.CUR_DAYS}}
+function addLine(txt){loadPl();txt=String(txt||'').trim();if(!txt)return;let id=txt.split(/\s/)[0];if(!pinfo(id).ok){const q=nk(txt);const f=[...D.prod.values()].find(p=>nk(p.name).includes(q));if(!f)return;id=f.id}
+  const i=pinfo(id),days=S.pdays||7,base=Math.round(i.vel*days);S.pl.push({id,name:i.name,price:i.price,promo:Math.round(i.price*0.8),cost:i.cost,support:0,base,units:base*2});savePl()}
+function suggestIds(){const B=D.stores,m=new Map();D.stock.filter(r=>B.includes(r.store)&&r.a>0&&r.price>0).forEach(r=>{const g=m.get(r.id)||{a:0,v:0};g.a+=r.a;g.v+=r.a*r.price;m.set(r.id,g)});
+  return [...m].filter(([id,g])=>g.a/(((D.prod.get(id)?.q||0)/CONFIG.CUR_DAYS)||1e-9)>CONFIG.SLOW_COVER_DAYS).sort((a,b)=>b[1].v-a[1].v).slice(0,5).map(x=>x[0])}
+function pcalc(l){const d=l.price-l.promo,off=Math.max(d-l.support,0)*l.units,hc=l.cost>0,mP=l.promo+l.support-l.cost,mN=l.price-l.cost;
+  return{d,pct:l.price?d/l.price:0,off,hc,mP,net:hc?l.units*mP-l.base*mN:null,be:hc?(mP>0?Math.ceil(l.base*mN/mP):Infinity):null}}
+function rPromo(){loadPl();const L=S.pl.map(l=>({l,c:pcalc(l)})),inp=(i,f,v,w=72)=>`<input type="number" step="any" data-pl="${i}|${f}" value="${v}" style="min-width:0;width:${w}px">`;
+  const off=sum(L,x=>x.c.off),net=sum(L.filter(x=>x.c.hc),x=>x.c.net),below=L.filter(x=>x.c.hc&&x.c.mP<0).length;
+  return `<datalist id="plist">${[...D.prod.values()].map(p=>`<option value="${p.id} · ${esc(p.name)}">`).join('')}</datalist>
+  <div class="note"><b>Scheme:</b> the office funds the discount → the store still receives the <b>normal price</b> per unit (the customer pays the promo price, the office covers the difference, minus any supplier support). Office cost = (normal price − promo price − supplier support) × promo units. Net impact = profit during promo − normal profit without promo. The numbers follow the “units without promo” and “units during promo” you enter – they are assumptions, not forecasts.</div>
+  <div class="filters"><label>Search product (code / name)<input id="padd" list="plist" placeholder="e.g. X0100101… or a name" style="min-width:280px"></label><label>&nbsp;<button data-act="add" class="pri">+ Add</button></label><label>&nbsp;<button data-act="sug">+ Suggest: overstocked items</button></label><label>&nbsp;<button data-act="clr">Clear all</button></label><label>Promo duration (days, for default units)<input type="number" min="1" data-k="pdays" value="${S.pdays||7}"></label></div>
+  <div class="kpis">${kpi('Products in promo',L.length)}${kpi('Total office cost',money(off),'funded by office')}${kpi('Net impact vs no promo',L.some(x=>x.c.hc)?money(net):'-',L.some(x=>x.c.hc)?'needs unit cost (成本)':'enter cost')}${kpi('Sold below cost',below,'products')}</div>
+  ${card('Promo calculation (edit the input cells)',tbl(['Product','Normal price','Promo price','Discount/unit','Discount %','Unit cost','Supplier support/unit','Units w/o promo','Units during promo','Office cost','Store receives/unit','Margin/unit (promo)','Net impact','Break-even units',''],
+   L.map(({l,c},i)=>[`${esc(l.name)}<br><small>${l.id}</small>`,inp(i,'price',l.price),inp(i,'promo',l.promo),f0(c.d),pc(c.pct),inp(i,'cost',l.cost),inp(i,'support',l.support),inp(i,'base',l.base),inp(i,'units',l.units),`<b>${money(c.off)}</b>`,f0(l.price),c.hc?`<span class="${c.mP<0?'dn':'up'}">${f0(c.mP)}</span>`:'<small>enter cost</small>',c.hc?`<span class="${c.net<0?'dn':'up'}">${f0(c.net)}</span>`:'-',c.be==null?'-':c.be==Infinity?'<small>never (sold below cost)</small>':f0(c.be),`<button data-act="del" data-i="${i}">✕</button>`]),[1,2,3,4,5,6,7,8,9,10,11,12,13])+`<div class="note warn">Margin/unit (promo) = promo price + supplier support − unit cost (store + office combined). Break-even units = promo units needed for net impact = 0. If promo price + support ≤ unit cost, volume can never cover the loss – such a promo only makes sense to clear stock, drive traffic or acquire members.</div>`)}`}
+/* ---------- shell ---------- */
+function render(){document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab==S.tab));const y=scrollY;
+  try{$('#app').innerHTML=S.tab=='sales'?rSales():S.tab=='redeem'?rRedeem():S.tab=='promo'?rPromo():rStock()}catch(e){$('#app').innerHTML='<div class="note warn">Error render: '+esc(e.message)+'</div>';console.error(e)}scrollTo(0,y)}
+document.addEventListener('change',e=>{const pl=e.target.dataset?.pl;if(pl){const[i,f]=pl.split('|');S.pl[+i][f]=+e.target.value||0;savePl();render();return}const k=e.target.dataset?.k;if(k){S[k]=e.target.type=='number'?+e.target.value:e.target.value;render()}});
+document.addEventListener('click',e=>{const d=e.target.dataset||{};if(d.tab){S.tab=d.tab;render()}else if(d.act=='add'){addLine(document.querySelector('#padd').value);render()}else if(d.act=='sug'){loadPl();suggestIds().forEach(id=>{if(!S.pl.some(l=>l.id==id))addLine(id)});render()}else if(d.act=='del'){S.pl.splice(+d.i,1);savePl();render()}else if(d.act=='clr'){S.pl=[];savePl();render()}});
+$('#refresh').onclick=async()=>{$('#refresh').disabled=true;await load();$('#refresh').disabled=false};
+load();
+</script></body></html>
