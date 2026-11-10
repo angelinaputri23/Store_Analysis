@@ -61,3 +61,12 @@ For add-on deals such as "spend NT$199, add NT$39". Add the items inside one gif
 
 To keep `Voucher_Redemptions_By_Store` up to date automatically, put this in cell A1 of that tab:
 `=QUERY(Product_Sales_Stats!A:J,"select A,B,C,D,G,H,I,J where G > 0",1)`
+
+### Buy X get Y free (C)
+Pick the "buy" product and (optionally) a different "free" product; leave the free product empty for buy 1 get 1. The page shows what the customer pays, the normal value of everything handed out, what the office pays for the free items (store still receives the normal price), profit per set, profit change vs no promo and break-even sets.
+
+## Redeemed Points
+1. **Voucher redemption by branch** (from tab `Voucher_Redemptions_By_Store`): vouchers used per branch, category and product, with *What we pay* (unit cost 成本 × vouchers) and *Sales value given away* (selling price 售價 × vouchers). The Branch and Category filters work on this part.
+2. **Points log** (from tab `Point_Redemptions`): total points, trends, LELE, telecom share, held/reversed. It has no store info, so it is shown for all branches together.
+
+Office = the company; branches are company-owned (no franchise), so no money moves between office and stores. A discount is simply sales we give up (*budget needed*).
