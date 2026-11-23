@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Xmart Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&family=DM+Serif+Display&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#6b7280;--bd:#e5e7eb;--ac:#2563eb;--ac2:#dbeafe;--bad:#dc2626;--good:#16a34a;--warn:#d97706}
+@media(prefers-color-scheme:dark){:root{--bg:#10141c;--card:#1a2030;--tx:#e8ecf4;--mut:#9aa4b5;--bd:#2a3347;--ac:#60a5fa;--ac2:#1e3a5f;--bad:#f87171;--good:#4ade80;--warn:#fbbf24}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,"Noto Sans TC",sans-serif}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--card);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:5}
+h1{font-size:18px;margin:0}small,.mut{color:var(--mut)}
+button{font:inherit;cursor:pointer;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:7px 14px;border-radius:8px}
+button.pri{background:var(--ac);border-color:var(--ac);color:#fff}button.on{background:var(--ac2);border-color:var(--ac);color:var(--ac);font-weight:600}
+nav{display:flex;gap:8px;padding:12px 20px;flex-wrap:wrap}main{padding:0 20px 40px;max-width:1280px;margin:auto}
+.filters{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 14px}.filters label{display:flex;flex-direction:column;font-size:12px;color:var(--mut);gap:3px}
+select,input{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);min-width:130px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.kpi,.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px}.kpi b{display:block;font-size:22px;margin:2px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:12px;margin-bottom:12px}.card h3{margin:0 0 8px;font-size:14px}
+.note{background:var(--ac2);border-radius:8px;padding:8px 10px;font-size:12.5px;margin:6px 0}.warn{background:rgba(217,119,6,.15)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}th,td{padding:5px 6px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}th{color:var(--mut);font-weight:600;position:sticky;top:0;background:var(--card)}
+td.n,th.n{text-align:right;white-space:nowrap}.sc{max-height:380px;overflow:auto}
+.br{display:grid;grid-template-columns:minmax(90px,200px) 1fr auto;gap:8px;align-items:center;margin:4px 0;font-size:12.5px}.bt{background:var(--bd);height:10px;border-radius:5px}.bt i{display:block;height:100%;background:var(--ac);border-radius:5px}
+.cols{display:flex;gap:6px;align-items:flex-end;height:170px;overflow-x:auto;padding-top:18px}.cols>div{flex:1;min-width:34px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;position:relative}.cols i{width:100%;background:var(--ac);border-radius:4px 4px 0 0;display:block}.cols b{font-size:10px;position:absolute;top:-2px}.cols small{font-size:10px;margin-top:3px}
+details.help{margin:6px 0;font-size:12.5px;color:var(--mut)}details.help summary{cursor:pointer}details.help>div{background:var(--ac2);color:var(--tx);border-radius:8px;padding:8px 10px;margin-top:4px}td.lbl{max-width:420px}.psum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:2px 0 8px}.psum>div{background:var(--ac2);border-radius:8px;padding:6px 10px}.psum b{display:block;font-size:17px;margin:1px 0}details.pm{margin:4px 0}details.pm summary{cursor:pointer;font-size:12.5px;color:var(--mut)}
+.up{color:var(--good)}.dn{color:var(--bad)}.tag{padding:1px 7px;border-radius:9px;font-size:11px;background:var(--ac2)}.Low{color:var(--warn)}.Out{color:var(--bad)}.Healthy{color:var(--good)}
+
+
+/* ===== PRO THEME ===== */
+:root{--bg:#f6f7fa;--card:#fff;--tx:#2b3140;--mut:#7b8294;--bd:#e5e8ef;--ac:#c2577a;--ac2:#fbeff3;--bad:#d64561;--good:#1f9d62;--warn:#d98a2b;--sh:0 1px 3px rgba(30,40,70,.06),0 6px 16px rgba(30,40,70,.05)}
+@media(prefers-color-scheme:dark){:root{--bg:#171a22;--card:#212632;--tx:#e8ebf2;--mut:#9aa3b8;--bd:#313849;--ac:#f08fae;--ac2:#33283a;--bad:#ff8097;--good:#52d89a;--warn:#f0b062;--sh:0 4px 14px rgba(0,0,0,.35)}}
+body{font:14px/1.55 Inter,"Noto Sans TC","PingFang TC",system-ui,sans-serif;color:var(--tx);background:var(--bg)}
+header{background:var(--card);border-bottom:1px solid var(--bd);box-shadow:var(--sh);color:var(--tx)}header small{color:var(--mut)}
+h1{font-size:20px;font-weight:700;letter-spacing:-.2px}h1::before{content:"";display:inline-block;width:6px;height:22px;border-radius:3px;background:var(--ac);margin-right:10px;vertical-align:-4px}
+button{border:1px solid var(--bd);border-radius:10px;padding:7px 14px;font-weight:600;background:var(--card);color:var(--tx);transition:.15s}button:hover{border-color:var(--ac);color:var(--ac)}
+button.pri{background:var(--ac);border-color:var(--ac);color:#fff}button.pri:hover{color:#fff;filter:brightness(1.08)}
+button.on{background:var(--ac2);border-color:var(--ac);color:var(--ac)}
+select,input{border:1px solid var(--bd);border-radius:10px;padding:6px 10px;background:var(--card);color:var(--tx)}select:focus,input:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px var(--ac2)}
+.kpi,.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;box-shadow:var(--sh)}
+.kpi b{font-size:26px;font-weight:700;letter-spacing:-.3px}.card h3{font-size:15px;font-weight:700}
+.note{background:var(--ac2);border:1px solid var(--bd);border-radius:10px}.warn{background:rgba(217,138,43,.12)}
+th{color:var(--mut);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;background:var(--card);border-bottom:2px solid var(--bd)}td{border-bottom:1px solid var(--bd)}tr:hover td{background:var(--ac2)}
+.bt{background:var(--bd);height:10px;border-radius:99px}.bt i{background:var(--ac);border-radius:99px}.cols i{background:var(--ac);border-radius:6px 6px 2px 2px}
+.up,.dn{display:inline-block;padding:0 8px;border-radius:99px;font-weight:600;white-space:nowrap}.up{background:rgba(31,157,98,.12);color:var(--good)}.dn{background:rgba(214,69,97,.12);color:var(--bad)}
+.tag{background:#eef0f6;color:var(--mut);font-weight:600}
+.mood{font-weight:700;padding:10px 14px;border-radius:10px;margin:0 0 10px;background:var(--ac2);border-left:4px solid var(--ac)}
+.foot{text-align:center;color:var(--mut);font-size:12px;padding:8px 0 28px}
+#gq{min-width:240px}
+/* ===== MOCHA & CREAM THEME ☕ white + brown ===== */
+:root{--bg:#fffdfb;--card:#ffffff;--tx:#4a3730;--mut:#9b8379;--bd:#ece1d9;--ac:#8f5f4b;--ac2:#f7efe9;--brown:#6b4a3c;--rose:#dcaea6;--good:#5f8f73;--bad:#b5473a;--warn:#c08a3e;--sh:0 1px 0 #ece1d9,0 8px 22px rgba(107,74,60,.06);--ff:Nunito,"Noto Sans TC","PingFang TC",system-ui,sans-serif}
+@media(prefers-color-scheme:dark){:root{--bg:#211815;--card:#2c211d;--tx:#f5e9e1;--mut:#c2a89c;--bd:#473630;--ac:#d9a58a;--ac2:#382a25;--brown:#ead2c3;--rose:#c58f86;--good:#8ccaa4;--bad:#ff8f7d;--warn:#e8b06a;--sh:0 1px 0 rgba(0,0,0,.3),0 8px 22px rgba(0,0,0,.28)}}
+body{font:14.5px/1.6 var(--ff);color:var(--tx);background:var(--bg)}
+::selection{background:#ecd5c8;color:#4a3730}
+header{background:var(--card);border-bottom:1px solid var(--bd);box-shadow:none}
+h1{font:400 25px/1.2 "DM Serif Display",var(--ff);color:var(--brown)}
+h1::before{content:"☕";width:auto;height:auto;background:none;margin-right:8px;vertical-align:0}
+h1 small{font:600 11px var(--ff);background:var(--ac2);color:var(--ac);border-radius:99px;padding:2px 9px;margin-left:6px;vertical-align:3px}
+button{border:1px solid var(--bd);border-radius:99px;padding:7px 16px;font-weight:700;color:var(--brown);background:var(--card);transition:background .15s,border-color .15s,transform .1s}
+button:hover{background:var(--ac2);border-color:var(--ac);color:var(--ac)}button:active{transform:scale(.97)}
+button.pri{background:var(--ac);border-color:var(--ac);color:#fff}button.pri:hover{background:var(--brown);color:#fff}
+button.on{background:var(--ac2);border-color:var(--ac);color:var(--ac)}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #d9b8a6;outline-offset:2px}
+select,input{border:1px solid var(--bd);border-radius:12px;padding:6px 12px}select:focus,input:focus{border-color:var(--ac);box-shadow:0 0 0 4px var(--ac2)}
+.kpi,.card{border:1px solid var(--bd);border-radius:18px;box-shadow:var(--sh)}
+.kpi b{font:400 28px/1.2 "DM Serif Display",var(--ff);color:var(--brown)}
+.card h3{font:400 18px "DM Serif Display",var(--ff);color:var(--brown);cursor:pointer;user-select:none}.card h3::after{content:" ▾";color:var(--mut);font-size:11px}
+.card.shut>:not(h3){display:none}.card.shut h3::after{content:" ▸"}
+.note,details.help>div{background:var(--ac2);border:1px dashed var(--bd);border-radius:14px}.mood{border:1px dashed var(--ac);border-left-width:1px;border-radius:14px}
+th{text-transform:none;letter-spacing:0;font-size:12.5px;color:var(--brown);border-bottom:1px solid var(--bd);cursor:pointer;white-space:nowrap}td{border-bottom:1px solid var(--bd)}tr:hover td{background:var(--ac2)}
+th:hover{color:var(--ac)}th[data-dir=asc]::after{content:" ▲";font-size:9px}th[data-dir=desc]::after{content:" ▼";font-size:9px}
+tr.pk td{background:var(--ac2);font-weight:700;color:var(--brown)}
+.bt{height:12px;background:var(--ac2)}.bt i{background:linear-gradient(90deg,#e8d5c8,var(--ac));transition:filter .15s}
+.cols i{background:linear-gradient(0deg,var(--ac),#e8d5c8);border-radius:8px 8px 3px 3px}
+.up{background:rgba(95,143,115,.15)}.dn{background:rgba(181,71,58,.12)}.tag{background:var(--ac2);color:var(--ac)}
+.foot{color:var(--mut)}
+*{scrollbar-color:#d9c3b6 transparent}
+.ctb{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 8px}.ctb button{padding:3px 11px;font-size:12px}
+.xsum{font-size:12px;color:var(--mut);margin-left:4px}.xsum b{color:var(--brown)}.xsum .lnk{padding:0 8px;font-size:11px}
+.br,.cols>div{cursor:pointer;transition:opacity .2s}.br:hover .bt i,.cols>div:hover i{filter:brightness(.9)}
+.br.sel .bt i,.cols>div.sel i{background:var(--rose)}.br.dim,.cols>div.dim{opacity:.3}.br.hid{display:none}
+#xtip{position:fixed;z-index:80;pointer-events:none;background:var(--tx);color:var(--bg);border-radius:10px;padding:6px 10px;font-size:12px;line-height:1.45;opacity:0;transition:opacity .12s;max-width:260px}
+.kpi.sq{animation:sq .4s}@keyframes sq{40%{transform:scale(.97)}}
+#app.swap{animation:swap .35s ease-out}@keyframes swap{from{opacity:0;transform:translateY(8px)}}
+#mascot{position:fixed;right:16px;bottom:16px;z-index:50;width:48px;height:48px;padding:0;font-size:24px;box-shadow:var(--sh)}
+#mtoast{position:fixed;right:72px;bottom:22px;z-index:50;max-width:250px;background:var(--card);border:1px solid var(--ac);border-radius:16px 16px 4px 16px;padding:8px 14px;font-weight:700;color:var(--brown);box-shadow:var(--sh);opacity:0;transform:translateY(6px);transition:.25s;pointer-events:none}#mtoast.on{opacity:1;transform:none}
+#langBtn{min-width:112px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style></head><body>
+<header><div><h1>Xmart · Store Dashboard <small>v14 · daily paste</small></h1><small id="status">Loading…</small></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><input type="file" id="fileIn" accept=".xlsx,.xls,.xlsm,.csv" multiple hidden><button id="upBtn" title="Upload an Excel (.xlsx) or CSV file from your computer. Tabs are recognised by sheet name or by their column headers.">⬆ Upload file</button><button id="upClr" hidden>✕ Clear uploads</button><button id="sheetBtn" title="Open the Google Sheet that feeds this dashboard (new tab)">📄 Open Google Sheet</button><button class="pri" id="refresh">⟳ Refresh data</button></div></header>
+<div id="upMsg" style="padding:0 20px"></div>
+<nav id="nav"><button data-tab="weekcmp">Weekly Comparison 每週比較</button><button data-tab="sales">Branch Sales 門市業績</button><button data-tab="redeem">Redeemed Points 點數兌換</button><button data-tab="stock">Stock &amp; Promo 庫存與促銷</button><button data-tab="promo">Promo Calculator 促銷試算</button><label style="margin-left:auto;align-self:center;font-size:13px"><input type="checkbox" data-k="helpAll" style="min-width:0"> Show explanations</label></nav>
+<main id="app"></main>
+<div class="foot">Xmart Store Dashboard · Source 資料來源: Paste_Weekly_Sales (weekly 每週銷售)</div>
+<script>
+/* ===== CONFIGURATION ===== */
+const CONFIG={
+  WEEK_START:0,   // week start for daily data: 0 = Sunday (8–14 Nov), 1 = Monday
+  MONTH_START:'2026-11-01',   // week numbers (W1, W2…) count from this date
+  STORE_CODES:{MF:'Minghu',DW:'Dewei',TN:'Tainan',DT:'Daxue',FN:'Hunei'},   // letters in the store dropdown of the sheet
+  STORE_ZH:{'明湖':'Minghu','德威':'Dewei','台南':'Tainan','楠梓':'Daxue','大學':'Daxue','湖內':'Hunei'},   // used only if the label has no code letters
+  SHEET_ID:'1Jb-P4tMv93RNgcgRqJKpGUwAwBtHSg9EJ4rMnHcbYl4',                 // ← paste your Google Sheet ID (the part between /d/ and /edit in its URL). Empty = use data/snapshot.json
+  TABS:{sales:['Sales_Data'],pts:['Point_Redemptions','Points_Redemptions','Points_History'],prod:['Product_Sales_Report','Product_Master'],stock:['Stock_Report','Stock_Data'],sp:['Product_Sales_Stats'],vs:['Voucher_Redemptions_By_Store','Copy of Point_Redemptions'],cat:['Category_Map'],prev:['Product_Master_Prev'],wk:['Product_Sales_Weekly'],bd:['By_Date_Product_Sales_Stats'],dd:['Paste_Weekly_Sales','Paste_Daily_Sales']},
+  VS_MONTH:'2026-11',  // month covered by the Voucher_Redemptions_By_Store tab
+  CUR_DAYS:9,  CUR_LABEL:'1–9 Nov 2026 (assumed)',     // period covered by Product_Master
+  PREV_DAYS:31, PREV_LABEL:'1–31 Oct 2026',    // period covered by Product_Master_Prev (comparison for rising/falling products)
+  STORE_ALIAS:{'新竹明湖館':'Minghu','XMART MINGHU STORE':'Minghu','XM-HC-002':'Minghu','新竹德威館':'Dewei','XMART DEWEI STORE':'Dewei','XM-HC-003':'Dewei','高雄湖內長春館':'Hunei','XMART HUNEI STORE':'Hunei','XM-KH-002':'Hunei','高雄楠梓大學館':'Daxue','XMART DAXUE STORE':'Daxue','XM-KH-001':'Daxue','台南科工一館':'Tainan','X MART TAINAN BRANCH':'Tainan','XM-TN-001':'Tainan'},
+  HEALTHY_X:2,        // healthy stock = available ≥ safety stock × this number
+  SLOW_COVER_DAYS:45  // stock > N days of sales = promo candidate
+};
+/* ======================== */
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sn=n=>{const t=String(n??'').trim();if(CONFIG.STORE_ALIAS[t])return CONFIG.STORE_ALIAS[t];const m=t.match(/^(MF|DW|TN|DT|FN)\b/i);if(m&&CONFIG.STORE_CODES[m[1].toUpperCase()])return CONFIG.STORE_CODES[m[1].toUpperCase()];for(const[k,v] of Object.entries(CONFIG.STORE_ZH))if(t.includes(k))return v;return t};
+const N=v=>{const x=parseFloat(String(v??'').replace(/,/g,''));return isNaN(x)?0:x},f0=n=>Math.round(n).toLocaleString('en-US'),money=n=>'NT$ '+f0(n),pc=n=>(n*100).toFixed(1)+'%';
+const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0),uniq=a=>[...new Set(a)];
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const nd=s=>{s=String(s).trim();if(/^\d{4}-\d\d-\d\d/.test(s))return s.slice(0,10);const d=new Date(s);return isNaN(d)?'':iso(d)};
+const wdn=d=>new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'short'});
+const wLab=k=>{const[a,b]=k.split('~');return a==b?a.slice(5)+' '+wdn(a):a.slice(5)+' → '+b.slice(5)};
+const BIG_EN={'冷凍冰品':'Frozen / ice cream','常溫飲料':'Ambient drinks','休閒食品':'Snacks','乾貨與常備食品':'Dry & staple food','個人家居用品':'Personal & home care','營業與門市用品':'Store supplies','冷凍食品':'Frozen food','冷藏食品':'Chilled food','冷藏飲料':'Chilled drinks','即食食品':'Ready-to-eat food','香菸':'Cigarettes','酒類':'Alcohol','3C通訊':'3C & telecom','服務性商品':'Services','促銷活動':'Promo'},MID_EN={'即食調味':'Condiments','沖泡奶粉':'Instant milk powder','沖泡咖啡':'Instant coffee','沖泡果汁':'Instant juice','沖泡食品':'Instant food','沖泡茶飲':'Instant tea','沖泡調味':'Instant seasoning','泡麵類':'Instant noodles','南北雜貨':'Dry goods','廚房料理':'Cooking essentials','罐頭':'Canned goods','五穀食品':'Grains & cereal','巧克力':'Chocolate','風味即食品':'Flavored ready-to-eat','風味零食':'Flavored snacks','甜味零食':'Sweet snacks','甜味餅乾':'Sweet biscuits','糖果':'Candy','鹹味零食':'Savory snacks','鹹味餅乾':'Savory biscuits','美妝保養':'Beauty & skincare','個人日用':'Personal daily items','個人香氛':'Fragrance','個人清潔':'Personal cleansing','個人衛生':'Personal hygiene','家居用品':'Household goods','醫療保健':'Health care','冰淇淋':'Ice cream','冰棒':'Popsicles','冰塊':'Ice','甜筒':'Cones','雪糕':'Ice bars','加熱食品':'Reheat food','料理食品':'Cooking kits','微波食品':'Microwave food','4℃即食品':'Chilled meals','4℃乳製品':'Chilled dairy','4℃甜點':'Chilled desserts','4℃奶類飲':'Chilled milk drinks','4℃豆穀飲':'Chilled soy & grain drinks','4℃乳酸飲':'Chilled fermented drinks','4℃咖啡':'Chilled coffee','4℃茶類':'Chilled tea','4℃蔬果汁':'Chilled juice','自助服務':'Self-serve','即食品':'Ready-to-eat items','限時活動':'Limited-time promo','烘焙品':'Bakery','功能飲料':'Functional drinks','瓶裝水':'Bottled water','保久乳':'UHT milk','風味飲品':'Flavored drinks','茶類':'Bottled tea','瓶裝':'Bottled coffee','碳酸飲料':'Soda','蔬果汁':'Bottled juice','代收代付':'Bill payment & collection','自營飲品':'In-store made drinks','飲品原料':'Drink ingredients','塑膠袋':'Plastic bags','餐飲耗材':'F&B supplies','營業食材':'Cooking ingredients','營業清潔':'Cleaning supplies','本地酒類':'Domestic alcohol','啤酒':'Beer','進口酒類':'Imported alcohol','進口香菸':'Imported cigarettes','抽菸用品':'Smoking supplies','國產香菸':'Domestic cigarettes','雪茄':'Cigars','3C配件':'3C accessories','通訊卡片':'Telecom cards','主食飯類':'Rice dishes','寄售食品':'Consignment food'};
+const normBig=v=>{v=String(v==null?'':v).trim();if(!v)return normBig('促銷活動');if(v.includes(' · '))return v;return BIG_EN[v]?BIG_EN[v]+' · '+v:v};
+const mc=x=>{const s=String(x||'').replace(/^X\d+\s*/,'').trim();if(!s||s.includes(' · '))return s;const z=s.split(/\s+/)[0];return MID_EN[z]?MID_EN[z]+' · '+z:s};
+const BIGSET=new Set(Object.keys(BIG_EN).map(normBig));
+const wkOf=s=>{const x=new Date(s+'T00:00:00');x.setDate(x.getDate()-(x.getDay()+6)%7);return iso(x)};
+function parseCSV(t){const r=[];let row=[],v='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){v+='"';i++}else q=false}else v+=c}else if(c=='"')q=true;else if(c==','){row.push(v);v=''}else if(c=='\n'){row.push(v);r.push(row);row=[];v=''}else if(c!='\r')v+=c}if(v!==''||row.length){row.push(v);r.push(row)}return r}
+const objs=t=>(t[0]?t.slice(1).map(r=>Object.fromEntries(t[0].map((h,i)=>[h,r[i]]))):[]);
+/* ---------- load ---------- */
+const OK={bd:t=>{const h=(t[0]||[]).map(x=>String(x).trim());return h[0]=='Date Range'&&h.includes('Store')&&h.includes('銷售淨額')},dd:t=>{const h=(t[0]||[]).map(x=>String(x).trim());return h.includes('商品編號')&&h.includes('銷售淨額')&&/Store|門市/.test(h[0]||'')},sp:t=>t[0]?.includes('Amount sold')&&t[0].includes('Cash (member) qty'),vs:t=>t[0]?.includes('Voucher qty')&&t[0].includes('Store name')&&!t[0].includes('Cash (member) qty'),sales:t=>t[0]?.includes('營業總額'),pts:t=>t[0]?.includes('Transaction Type'),prod:t=>t[0]?.[0]=='商品編號'&&t[0].length>=11,stock:t=>t[0]?.includes('可用庫存'),cat:t=>t[0]?.includes('大分類'),prev:t=>t[0]?.[0]=='商品編號'&&t[0].length>=11,wk:t=>t[0]?.includes('銷售淨額')};
+const CORE=['prod','stock'];let D={},S={tab:'weekcmp'};
+async function live(name){const r=await fetch(`https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(name)}&_=${Date.now()}`);if(!r.ok)throw Error(r.status);const t=parseCSV(await r.text());while(t.length&&t[0].every(c=>!String(c).trim()))t.shift();return t}
+const UP={};let LAST=null,SRC='';
+function showStatus(){const u=Object.keys(UP);$('#status').textContent='Source: '+SRC+(u.length?' · uploaded file (replaces the sheet for): '+u.map(k=>CONFIG.TABS[k][0]).join(', '):'')+' · updated '+new Date().toLocaleString('en-GB');const c=document.getElementById('upClr');if(c)c.hidden=!u.length}
+function keyFor(name,t){const n=String(name).toLowerCase().replace(/\.(xlsx|xls|xlsm|csv|txt)$/,'').trim(),ks=Object.keys(CONFIG.TABS);
+  let k=ks.find(k=>CONFIG.TABS[k].some(a=>a.toLowerCase()==n));if(!k)k=['dd','bd','vs','sp'].concat(ks).find(k=>CONFIG.TABS[k].some(a=>n.includes(a.toLowerCase())));
+  if(k&&OK[k](t))return k;if(/prev/.test(n)&&OK.prev(t))return 'prev';return['dd','bd','sp','vs','sales','pts','stock','cat','wk','prod'].find(k=>OK[k](t))||''}
+function loadXLSX(){return window.XLSX?Promise.resolve(window.XLSX):new Promise(res=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=()=>res(window.XLSX);s.onerror=()=>res(null);document.head.appendChild(s)})}
+const clean=t=>t.filter(r=>r.some(c=>String(c??'').trim()!==''));
+async function onFiles(files){const got=[],skip=[];if(!LAST){skip.push('Data is still loading – try again in a moment');}else for(const f of files){const ext=f.name.split('.').pop().toLowerCase();
+    if(ext=='csv'||ext=='txt'){const t=clean(parseCSV(await f.text())),k=keyFor(f.name,t);k?(UP[k]=t,got.push(f.name+' → '+CONFIG.TABS[k][0]+' ('+(t.length-1)+' rows)')):skip.push(f.name+' (columns not recognised)')}
+    else if(/^(xlsx|xls|xlsm)$/.test(ext)){const X=await loadXLSX();if(!X){skip.push(f.name+' (Excel reader could not be loaded – check your internet connection, or save each sheet as CSV)');continue}
+      const wb=X.read(await f.arrayBuffer(),{type:'array',cellDates:true});for(const sn of wb.SheetNames){const t=clean(X.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:false,defval:'',dateNF:'yyyy-mm-dd hh:mm:ss'})),k=keyFor(sn,t);k?(UP[k]=t,got.push(sn+' → '+CONFIG.TABS[k][0]+' ('+(t.length-1)+' rows)')):skip.push(sn+' (not recognised)')}}
+    else skip.push(f.name+' (use .xlsx or .csv)')}
+  if(got.length){build({...LAST,...UP});showStatus();render()}
+  $('#upMsg').innerHTML=`<div class="note ${got.length?'':'warn'}">${got.length?'<b>Loaded:</b> '+got.map(esc).join(' · '):''}${skip.length?(got.length?'<br>':'')+'<b>Skipped:</b> '+skip.map(esc).join(' · '):''} <button onclick="this.parentNode.remove()" style="float:right;padding:0 8px">✕</button></div>`}
+async function load(){
+  $('#status').textContent='Loading data…';
+  let snap={};const em=document.getElementById('embedded');if(em)try{snap=JSON.parse(em.textContent)}catch(e){}
+  if(!Object.keys(snap).length)try{snap=await (await fetch('data/snapshot.json?'+Date.now())).json()}catch(e){}
+  if(!Object.keys(snap).length&&!CONFIG.SHEET_ID){$('#status').textContent='No data: snapshot not found.';return}
+  const T={};for(const k in CONFIG.TABS){const n=CONFIG.TABS[k].find(n=>snap[n]);T[k]=n?snap[n]:[]}let src='Snapshot (data/snapshot.json)',fail=[],how={};
+  if(CONFIG.SHEET_ID){await Promise.all(Object.keys(CONFIG.TABS).map(async k=>{let got=false;for(const n of CONFIG.TABS[k]){try{const t=await live(n);if(OK[k](t)){T[k]=t;got=true;how[k]='live';break}}catch(e){}}if(!got){how[k]=T[k].length?'snapshot':'missing';if(CORE.includes(k))fail.push(CONFIG.TABS[k][0])}}));
+    src=fail.length?'⚠ Could not read: '+fail.join(', ')+' (using snapshot). Make sure the sheet is shared as "Anyone with the link – Viewer".':'Google Sheets'+' · live: '+Object.keys(how).filter(k=>how[k]=='live').map(k=>CONFIG.TABS[k][0]).join(', ')+(Object.keys(how).some(k=>how[k]=='snapshot')?' · from snapshot (tab not found in sheet): '+Object.keys(how).filter(k=>how[k]=='snapshot').map(k=>CONFIG.TABS[k][0]).join(', '):'')}
+  SRC=src;LAST=T;build({...T,...UP});showStatus();render()}
+function prodMap(t){const m=new Map();(t||[]).slice(1).forEach(r=>{const id=String(r[0]).trim();if(/^X/.test(id))m.set(id,{id,name:r[1],q:N(r[9]),a:N(r[10])})});return m}
+function build(T){
+  let last='';D.sales=(T.sales||[]).slice(1).filter(r=>N(r[6])||N(r[5])).map(r=>{if(r[0])last=nd(r[0]);return{d:last,w:wkOf(last),store:sn(r[4]),tx:N(r[5]),amt:N(r[6])}});
+  D.sp=(T.sp||[]).slice(1).filter(r=>r[2]).map(r=>({store:sn(r[1]||r[0]),id:String(r[2]).trim(),name:r[3],mem:N(r[4]),q:N(r[7]),a:N(r[8]),tx:N(r[9])}));D.spIdx=new Map();D.sp.forEach(x=>D.spIdx.set(x.id+'|'+x.store,x));
+  D._ml=null;D._pn=null;
+  {const p2=x=>String(x).padStart(2,'0'),rngW=s=>{let m=String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s*[-–~]\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(m)return[`${m[3]}-${p2(m[1])}-${p2(m[2])}`,`${m[6]}-${p2(m[4])}-${p2(m[5])}`];m=String(s).match(/(\d{4}-\d\d-\d\d)\D+(\d{4}-\d\d-\d\d)/);return m?[m[1],m[2]]:null};
+   const dayN=(a,b)=>Math.round((new Date(b)-new Date(a))/864e5)+1,wkS=d=>{const x=new Date(d+'T00:00:00');x.setDate(x.getDate()-((x.getDay()-CONFIG.WEEK_START+7)%7));const e=new Date(x);e.setDate(e.getDate()+6);return iso(x)+'~'+iso(e)};
+   const M=new Map();D.bdBad=0;D.bdRaw=(T.bd||[]).length>1||(T.dd||[]).length>1;
+   {const h=((T.bd||[])[0]||[]).map(x=>String(x).trim()),ix=n=>h.indexOf(n);let cr='',cs='';
+    (T.bd||[]).slice(1).forEach(r=>{const dr=String(r[ix('Date Range')]??'').trim(),sv=String(r[ix('Store')]??'').trim(),id=String(r[ix('商品編號')]??'').trim();if(dr==='Date Range')return;if(dr)cr=dr;if(sv)cs=sv;if(!/^[A-Za-z0-9]/.test(id))return;const p=rngW(cr);if(!p||!cs){D.bdBad++;return}const k=p[0]+'~'+p[1],store=sn(cs.replace(/^\d+\s+/,''));M.set('w|'+k+'|'+store+'|'+id,{src:'w',d:null,k,g:k,n:dayN(p[0],p[1]),store,id,name:r[ix('商品名稱')],q:N(r[ix('銷售淨數量')]),a:N(r[ix('銷售淨額')]),mem:null})})}
+   {const h=((T.dd||[])[0]||[]).map(x=>String(x).trim()),ix=n=>h.indexOf(n),iI=h.findIndex(x=>x.includes('資料日期')),iC=ix('商品編號'),iN=ix('商品名稱'),iQ=ix('銷售淨數量'),iA=ix('銷售淨額');let cs='',cd=null;
+    (T.dd||[]).slice(1).forEach(r=>{const s0=String(r[0]??'').trim();if(s0)cs=s0;const m=String(r.find(c=>typeof c=='string'&&c.includes('資料日期'))||'').match(/資料日期[：:]\s*(\d{4})\/(\d{1,2})\/(\d{1,2})\s*[-~–]\s*(\d{4})\/(\d{1,2})\/(\d{1,2})/);if(m)cd={s:`${m[1]}-${p2(m[2])}-${p2(m[3])}`,e:`${m[4]}-${p2(m[5])}-${p2(m[6])}`};const id=String(r[iC]??'').trim();if(!/^X\d{6,}/i.test(id))return;if(!cd||!cs){D.bdBad++;return}
+     const store=sn(cs),one=cd.s==cd.e,k=cd.s+'~'+cd.e;M.set('d|'+k+'|'+store+'|'+id,{src:'d',d:one?cd.e:null,k,g:one?wkS(cd.e):k,n:dayN(cd.s,cd.e),store,id,name:r[iN],q:N(r[iQ]),a:N(r[iA]),mem:null})})}
+   const dd=new Map(),eachDay=(k,f)=>{const[a,b]=k.split('~');for(let t=new Date(a+'T00:00:00'),e=new Date(b+'T00:00:00');t<=e;t.setDate(t.getDate()+1))f(iso(t))};
+   M.forEach(x=>{if(x.src=='d'){if(!dd.has(x.store))dd.set(x.store,new Set());eachDay(x.k,d=>dd.get(x.store).add(d))}});
+   D.bd=[...M.values()].filter(x=>{if(x.src!='w'||!dd.has(x.store))return true;let hit=false;eachDay(x.k,d=>{if(dd.get(x.store).has(d))hit=true});return !hit});
+   D.bdDaily=D.bd.some(x=>x.d);D.days=uniq(D.bd.filter(x=>x.d).map(x=>x.d)).sort()}
+  const bs={};(D.sp.length?D.sp.map(x=>({store:x.store,amt:x.a})):D.sales).forEach(s=>bs[s.store]=(bs[s.store]||0)+s.amt);D.stores=Object.keys(bs).sort((a,b)=>bs[b]-bs[a]);
+  D.prod=prodMap(T.prod);D.prev=prodMap(T.prev);
+  const ch=T.cat[0]||[],ib=ch.indexOf('大分類'),im=ch.indexOf('中分類');D.cat=new Map(T.cat.slice(1).map(r=>[String(r[0]).trim(),{big:normBig(r[ib]),mid:mc(r[im])}]));
+  const h=T.stock[0]||[],ix=n=>h.indexOf(n),ic=ix('大分類名稱'),imd=ix('中分類名稱');
+  D.stock=T.stock.slice(1).filter(r=>r[ix('門市')]&&!/湖口/.test(r[ix('門市')])).map(r=>{const id=String(r[ix('商品編號')]).trim(),avail=N(r[ix('可用庫存')]),safety=N(r[ix('安全庫存')]);const big=normBig((ic>=0&&r[ic])||D.cat.get(id)?.big),mid=mc((imd>=0&&r[imd])||D.cat.get(id)?.mid||'');if(ic>=0&&(r[ic]||!D.cat.has(id)))D.cat.set(id,{big,mid});return{store:sn(r[ix('門市')]),id,name:r[ix('商品名稱')],avail,a:Math.max(avail,0),safety,price:N(r[ix('售價')]),cost:N(r[ix('成本')]),big,mid}});
+  D.wk=objs(T.wk).map(o=>{const g=(...k)=>{for(const x of k)if(o[x]!==undefined&&o[x]!=='')return o[x];return''};const d=nd(g('Week_Start','Week','Date','日期'));return{w:d?wkOf(d):'',store:g('Store','門市','門市名稱'),id:String(g('商品編號','Product_ID')).trim(),name:g('商品名稱','Product_Name'),q:N(g('銷售淨數量','Qty')),a:N(g('銷售淨額','Amount'))}}).filter(x=>x.w);
+  D.nameCat=new Map();D.nameBM=new Map();D.nameInfo=new Map();D.stock.forEach(r=>{const k=nk(r.name);if(k&&r.big&&!D.nameCat.has(k)){D.nameCat.set(k,r.big);D.nameBM.set(k,r.mid||r.big)}if(k&&r.price>0&&!D.nameInfo.has(k))D.nameInfo.set(k,{price:r.price,cost:r.cost})});_rc.clear();_ni.clear();
+  const raw=objs(T.pts).map(o=>{const m=String(o['Message']||'');let type,status;
+    if(/reversed/i.test(m)){type='Reversal';status='reversed'}else if(/^User claiming voucher/.test(m)){type='Voucher';status='completed'}else if(/order points held/.test(m)){type='LELE Marketplace';status='held'}else if(/LELE marketplace/i.test(m)){type='LELE Marketplace';status='completed'}else{type='Lainnya';status='completed'}
+    let meta={};try{meta=JSON.parse(o['Metadata']||'{}')}catch(e){}
+    const items=type=='Voucher'?[meta.voucher_name||m.replace(/^User claiming voucher - /,'')]:((meta.product_names||[]).length?meta.product_names:['—']),lk=type=='Voucher'?[(meta.voucher_name_translations||{})['zh-tw']||items[0]]:items,cats=lk.map((n,i)=>n=='—'?'No item info · 無商品資訊':rcat(n,type,items[i])),catsM=lk.map((n,i)=>n=='—'?'No item info · 無商品資訊':rcatM(n,type,items[i])),prod=items.join(', '),d=String(o['Transaction Date']||'');
+    return{pts:Math.abs(N(o['Points'])),d:d.slice(0,10),month:d.slice(0,7),src:o['Source']||'(no source)',store:sn(o['Store Name']),type,status,prod,items,cats,catsM,infos:lk.map((n,i)=>n=='—'?null:ninfo(n,items[i])),vk:nk(lk[0]),order:meta.order_id}});
+  const vh=(T.vs||[])[0]||[],vi=n=>vh.indexOf(n);
+  D.vs=(T.vs||[]).slice(1).filter(r=>r[vi('Product code')]).map(r=>({store:sn(r[vi('Store name')]||r[vi('Store code')]),id:String(r[vi('Product code')]).trim(),name:r[vi('Product name')],q:N(r[vi('Voucher qty')]),tq:N(r[vi('Total qty')]),a:N(r[vi('Amount sold')])}));
+  const va=new Map();raw.filter(r=>r.type=='Voucher'&&r.status=='completed').forEach(r=>{const g=va.get(r.vk)||{n:0,p:0};g.n++;g.p+=r.pts;va.set(r.vk,g)});D.vAvg=va;
+  const done=new Set(raw.filter(r=>r.status=='completed'&&r.order).map(r=>r.order));D.pts=raw.filter(r=>!(r.status=='held'&&done.has(r.order)));D.ptsDupHold=raw.length-D.pts.length}
+/* ---------- ui helpers ---------- */
+const kpi=(l,v,s='')=>`<div class="kpi"><small>${l}</small><b>${v}</b><small>${s}</small></div>`;
+const card=(t,b,x='')=>`<div class="card" ${x}><h3>${t}</h3>${b}</div>`;
+const bars=(rows,fmt=f0)=>{const mx=Math.max(...rows.map(r=>r[1]),1);return rows.length?rows.map(r=>`<div class="br"><span title="${esc(r[0])}">${esc(String(r[0]).slice(0,34))}</span><div class="bt"><i style="width:${Math.max(r[1]/mx*100,1)}%"></i></div><span>${fmt(r[1])}</span></div>`).join(''):'<small>No data</small>'};
+const cols=(rows,fmt=f0)=>{const mx=Math.max(...rows.map(r=>r[1]),1);return`<div class="cols">${rows.map(r=>`<div><b>${fmt(r[1])}</b><i style="height:${Math.max(r[1]/mx*85,1)}%"></i><small>${esc(r[0])}</small></div>`).join('')}</div>`};
+const tbl=(h,rows,nc=[])=>`<div class="sc"><table><tr>${h.map((x,i)=>`<th class="${nc.includes(i)?'n':''}">${x}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map((x,i)=>`<td class="${nc.includes(i)?'n':''}">${x}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${h.length}"><small>No data</small></td></tr>`}</table></div>`;
+const sel=(k,l,opts,v)=>`<label>${l}<select data-k="${k}">${opts.map(o=>`<option value="${esc(o[0])}"${o[0]==v?' selected':''}>${esc(o[1])}</option>`).join('')}</select></label>`;
+const chg=x=>x==null?'<span class="tag">new</span>':`<span class="${x>=0?'up':'dn'}">${x>=0?'▲':'▼'} ${Math.abs(x*100).toFixed(0)}%</span>`;
+const group=(a,kf,init,add)=>{const m=new Map();a.forEach(x=>{const k=kf(x);if(!m.has(k))m.set(k,init());add(m.get(k),x)});return m};
+var help=(key,title,html)=>`<details class="help" data-h="${key}" ${S.helpAll||(S.help&&S.help[key])?'open':''}><summary>ℹ ${title}</summary><div>${html}</div></details>`;
+document.addEventListener('toggle',e=>{const k=e.target.dataset&&e.target.dataset.h;if(k){S.help=S.help||{};S.help[k]=e.target.open}},true);
+const nk=x=>String(x||'').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]/g,''),TEL=/PREPAID|INTERNET CARD|上網卡|儲值卡|TOP-UP/i,catLabel=c=>String(c==null?'':c),midLabel=c=>{const s=String(c==null?'':c),i=s.indexOf(' · ');return BIGSET.has(s)?s.slice(0,i)+' (sub-category not matched) · '+s.slice(i+3):s},_rc=new Map();
+function rcat(n,type,alt){return rcat2(n,type,alt).big}
+function rcatM(n,type,alt){return rcat2(n,type,alt).bm}
+function rcat2(n,type,alt){n=String(n||'');const t=n+' '+String(alt||'');if(TEL.test(t))return{big:'Telecom (SIM / top-up) · 電信上網卡/儲值卡',bm:'Telecom (SIM / top-up) · 電信上網卡/儲值卡'};const k=nk(n);if(_rc.has(k))return _rc.get(k);let c=D.nameCat.get(k),kf=k;if(!c&&k.length>5)for(const [kk,v] of D.nameCat)if(kk.length>5&&(kk.includes(k)||k.includes(kk))){c=v;kf=kk;break}
+  let bm=c?(D.nameBM.get(kf)||c):'';
+  if(!c&&/AICE|ice pop|ice cream|ice bar/i.test(t))c=normBig('冷凍冰品');if(!c&&/sparkling water|juice|tea\b|coffee|coconut water|milk drink/i.test(t))c=normBig('常溫飲料');
+  c=c||(type=='Voucher'?'Other (voucher) · 其他(票券)':'Other (LELE) · 其他(LELE)');bm=bm||c;const o={big:c,bm};_rc.set(k,o);return o}
+const _ni=new Map();
+function ninfo(n,alt){const ks=[nk(n),nk(alt)].filter(Boolean);for(const k of ks)if(_ni.has(k)&&_ni.get(k))return _ni.get(k);let r=null;for(const k of ks){r=D.nameInfo.get(k)||null;if(!r&&k.length>5)for(const [kk,v] of D.nameInfo)if(kk.length>5&&(kk.includes(k)||k.includes(kk))){r=v;break}if(r)break}ks.forEach(k=>_ni.set(k,r));return r}
+const bigOf=id=>D.cat.get(id)?.big||'Uncategorized · 未分類';
+const midOf=id=>D.cat.get(id)?(D.cat.get(id).mid||'No sub-category · 無中分類'):'Uncategorized · 未分類';
+const midsOf=b=>{if(!D._ml){D._ml=new Map();D.cat.forEach(v=>{if(!D._ml.has(v.big))D._ml.set(v.big,new Set());D._ml.get(v.big).add(v.mid||'No sub-category · 無中分類')})}const bs=b?[b]:[...D._ml.keys()].sort();return bs.flatMap(x=>[...(D._ml.get(x)||[])].sort())};
+const inCatG=id=>(!S.cat||bigOf(id)==S.cat)&&(!S.mid||midOf(id)==S.mid)&&(!S.prod||id==S.prod);
+const catOf=id=>midOf(id);
+const midSel=(k,big,cur,lab)=>sel(k,'Sub-category (中分類)',[['','All sub-categories (中分類)'],...midsOf(big).map(m=>[m,lab?lab(m):m])],cur);
+const prodSel=()=>{if(!S.cat&&!S.mid)return '';if(!D._pn){D._pn=new Map();const add=(id,n,a)=>{const q=D._pn.get(id)||{n:'',a:0};if(n)q.n=n;q.a+=a;D._pn.set(id,q)};D.sp.forEach(x=>add(x.id,x.name,x.a));D.prod.forEach(q=>{if(!D._pn.has(q.id))add(q.id,q.name,q.a)});(D.bd||[]).forEach(x=>{if(!D._pn.has(x.id))add(x.id,x.name,0)})}const l=[...D._pn].filter(([id])=>(!S.cat||bigOf(id)==S.cat)&&(!S.mid||midOf(id)==S.mid)).sort((x,y)=>y[1].a-x[1].a).slice(0,500);return sel('prod','Product (商品)',[['','All products'],...l.map(([id,q])=>[id,q.n||id])],S.prod)};
+/* ---------- 1. SALES ---------- */
+function rWeekCmp(){
+  const bdA=D.bd||[],weeks=uniq(bdA.map(x=>x.g)).sort(),nB=D.stores.length;
+  if(weeks.length<2)return`<div class="note warn">The weekly comparison needs at least <b>2 weeks</b> of sales by date. Right now there ${weeks.length==1?'is 1 week':'are '+weeks.length+' weeks'}${weeks.length?' ('+weeks.map(wLab).join(', ')+')':''} in <b>Paste_Weekly_Sales</b> / <b>By_Date_Product_Sales_Stats</b>. Paste the next week's exports (one per branch) and click Refresh data.</div>`;
+  const m0=new Date((CONFIG.MONTH_START||weeks[0].split('~')[0])+'T00:00:00'),wnum=g=>Math.max(1,Math.floor(Math.round((new Date(g.split('~')[0]+'T00:00:00')-m0)/864e5)/7)+1),wn=g=>'W'+wnum(g);
+  let gB=weeks.includes(S.wb)?S.wb:weeks[weeks.length-1];
+  let gA=weeks.includes(S.wa)&&S.wa!=gB?S.wa:weeks[Math.max(0,weeks.indexOf(gB)-1)];
+  if(gA==gB)gA=weeks[weeks.indexOf(gB)==0?1:0];
+  const rW=g=>bdA.filter(x=>x.g==g),stOf=g=>uniq(rW(g).filter(x=>!S.store||x.store==S.store).map(x=>x.store)),dOf=g=>{const r=rW(g);return uniq(r.map(x=>x.d).filter(Boolean)).length||Math.max(0,...r.map(x=>x.n))||1};
+  const mode=S.wm||(dOf(gA)!=dOf(gB)?'day':'total'),dv=g=>mode=='day'?dOf(g):1;
+  const rowsF=(g,st)=>rW(g).filter(x=>st.includes(x.store)&&inCatG(x.id)),tot=(g,st)=>sum(rowsF(g,st),x=>x.a),val=(g,st)=>tot(g,st)/dv(g);
+  const common=(g1,g2)=>stOf(g1).filter(s=>stOf(g2).includes(s));
+  const sg=n=>(n>=0?'+':'−')+f0(Math.abs(n)),dp=(a,d)=>a>0?d/a:null,arr=(d,p)=>`<span class="${d>=0?'up':'dn'}">${d>=0?'▲':'▼'} ${p==null?'new':Math.abs(p*100).toFixed(1)+'%'}</span>`;
+  const cs=common(gA,gB),excl=uniq([...stOf(gA),...stOf(gB)]).filter(s=>!cs.includes(s));
+  const wOpt=g=>[g,wn(g)+' · '+wLab(g)+' · '+dOf(g)+'d · '+stOf(g).length+' branches'];
+  const cats=uniq([...D.prod.keys(),...D.sp.map(x=>x.id)].map(bigOf)).sort();
+  const filt=`<div class="filters">${sel('wa','Compare from',weeks.map(wOpt),gA)}${sel('wb','to',weeks.map(wOpt),gB)}${sel('wm','Basis',[['','Auto'],['total','Total'],['day','Per day']],S.wm||'')}${sel('store','Branch',[['','All branches'],...D.stores.map(s=>[s,s])],S.store)}${sel('cat','Category (大分類)',[['','All categories'],...cats.map(c=>[c,c])],S.cat)}${midSel('mid',S.cat,S.mid)}${prodSel()}${sel('wn','Show top',[['10','Top 10'],['20','Top 20'],['50','Top 50']],String(S.wn||10))}</div>`;
+  const note=`<div class="note">Basis: <b>${mode=='day'?'average per day':'weekly total'}</b>${S.wm?'':' (automatic: '+(dOf(gA)!=dOf(gB)?'the two weeks have a different number of days':'same number of days')+')'}. Only branches that have data in <b>both</b> weeks are compared: <b>${cs.map(esc).join(', ')||'none'}</b>${excl.length?' (left out: '+excl.map(esc).join(', ')+')':''}. Net = sales minus returns.</div>`;
+const allW=(()=>{
+  if(weeks.length<2)return'';
+  const stAll=weeks.map(g=>stOf(g)),cA=stAll.reduce((a,b)=>a.filter(s=>b.includes(s))),allS=uniq(stAll.flat()),n=weeks.length,ix=[...Array(n).keys()].reverse(),ix1=ix.filter(i=>i>0);
+  const vv=(g,st)=>sum(rowsF(g,st),x=>x.a)/dv(g),unit=mode=='day'?' · per day 每日平均':'';
+  const hd=ix.map(i=>wn(weeks[i])+(i==n-1?' (latest)':'')),dh=ix1.map(i=>wn(weeks[i])+' vs '+wn(weeks[i-1])),nc=[...Array(hd.length+dh.length).keys()].map(i=>i+1);
+  const dc=(a,b)=>a==null||b==null||(a==0&&b==0)?'–':arr(b-a,dp(a,b-a));
+  const rowOf=(l,v)=>[l,...ix.map(i=>v[i]==null?'–':f0(v[i])),...ix1.map(i=>dc(v[i-1],v[i]))];
+  const bR=allS.map(s=>rowOf(esc(s),weeks.map(g=>stOf(g).includes(s)?vv(g,[s]):null)));
+  bR.push(rowOf('<b>Total 合計</b>',weeks.map(g=>cA.length?vv(g,cA):null)));
+  const ck=x=>S.cat?catOf(x.id):bigOf(x.id),cm=new Map();
+  weeks.forEach((g,i)=>rowsF(g,cA).forEach(x=>{const c=ck(x);if(!cm.has(c))cm.set(c,weeks.map(()=>0));cm.get(c)[i]+=x.a/dv(g)}));
+  const cR=[...cm].sort((a,b)=>b[1][n-1]-a[1][n-1]).map(([c,v])=>rowOf(esc(c),v));
+  const trans=ix1.map(i=>[weeks[i-1],weeks[i]]);
+  const tc=trans.map(([p,g])=>{const c=common(p,g),ttl=wn(g)+' vs '+wn(p)+' · '+wLab(g)+' vs '+wLab(p);
+    if(!c.length)return card(ttl,'<div class="note warn">No branch has data in both weeks. 兩週無共同門市資料。</div>');
+    const m=new Map();[[p,'a'],[g,'b']].forEach(([w,k])=>rowsF(w,c).forEach(x=>{let o=m.get(x.id);if(!o)m.set(x.id,o={name:x.name,a:0,b:0});o[k]+=x.a/dv(w);if(x.name)o.name=x.name}));
+    const r=[...m].map(([id,o])=>({id,...o,d:o.b-o.a})),U=r.filter(o=>o.d>0).sort((a,b)=>b.d-a.d),Dn=r.filter(o=>o.d<0).sort((a,b)=>a.d-b.d),T=sum(r,o=>o.d);
+    const pt=l=>tbl(['Product 商品',wn(p),wn(g),'Δ NT$','Δ %'],l.map(o=>[esc(o.name)+'<br><small>'+o.id+'</small>',f0(o.a),f0(o.b),sg(o.d),o.a==0?'<span class="tag">new 新品</span>':o.b==0?'<span class="tag">no sales 無銷售</span>':arr(o.d,dp(o.a,o.d))]),[1,2,3]);
+    return card(ttl,'<div class="note">Net change 淨增減 <b>'+sg(T)+'</b> NT$ · <b>'+U.length+'</b> up 上升 (+'+f0(sum(U,o=>o.d))+') · <b>'+Dn.length+'</b> down 下降 (−'+f0(Math.abs(sum(Dn,o=>o.d)))+')</div><h3>▲ Top 5 up 上升</h3>'+pt(U.slice(0,5))+'<h3>▼ Top 5 down 下降</h3>'+pt(Dn.slice(0,5)))});
+  const pm=new Map();weeks.forEach((g,i)=>rowsF(g,cA).forEach(x=>{let o=pm.get(x.id);if(!o)pm.set(x.id,o={id:x.id,name:x.name||x.id,c:midOf(x.id),v:weeks.map(()=>0)});o.v[i]+=x.a/dv(g);if(x.name)o.name=x.name}));
+  const PR=[...pm.values()].sort((a,b)=>b.v[n-1]-a.v[n-1]);
+  const pq=q=>{q=(q||'').trim().toLowerCase();const L=q?PR.filter(o=>(o.name+' '+o.id+' '+o.c).toLowerCase().includes(q)):PR,sh=L.slice(0,40);
+    return'<div class="note">'+(q?L.length+' matches 筆符合':PR.length+' products 商品')+' · showing top '+sh.length+' by '+wn(weeks[n-1])+' sales 依最新週排序</div>'+tbl(['Product 商品','Sub-sub-category 中分類',...hd,...dh],sh.map(o=>[esc(o.name)+'<br><small>'+o.id+'</small>',esc(o.c),...ix.map(i=>f0(o.v[i])),...ix1.map(i=>dc(o.v[i-1],o.v[i]))]),nc.map(i=>i+1))};
+  window.prodQ=q=>{const e=document.getElementById('pq');if(e)e.innerHTML=pq(q)};
+  const wnote='<div class="note">Newest week first 最新週在最前. Net sales 銷售淨額'+unit+'. Δ % = change vs the previous week 較前一週增減. Total row and category table use branches with data in <b>all</b> weeks 僅含每週皆有資料的門市'+(cA.length<allS.length?' (excluded 排除: '+allS.filter(s=>!cA.includes(s)).map(esc).join(', ')+')':'')+'.</div>';
+  return card('Net sales by branch 各店每週業績'+unit,wnote+tbl(['Branch 門市',...hd,...dh],bR,nc))+
+   card('Net sales by '+(S.cat?'sub-category 中分類':'category 大分類')+unit,tbl([S.cat?'Sub-sub-category 中分類':'Category 大分類',...hd,...dh],cR,nc))+
+   '<h3 style="margin:14px 0 8px">Products up / down vs previous week 商品週升降</h3><div class="grid">'+tc.join('')+'</div>'+
+   card('Product search 商品搜尋','<input id="pqi" placeholder="Search name / code / category 搜尋商品名稱、編號、分類" oninput="prodQ(this.value)" style="width:100%;margin-bottom:8px"><div id="pq">'+pq('')+'</div>')})();
+  if(!cs.length)return filt+note+`<div class="note warn">No branch has data in both weeks, so there is nothing to compare. Pick other weeks or another branch.</div>`;
+  const tA=val(gA,cs),tB=val(gB,cs),d=tB-tA;
+  const bt=uniq([...stOf(gA),...stOf(gB)]).map(s=>{const inA=stOf(gA).includes(s),inB=stOf(gB).includes(s),a=inA?val(gA,[s]):null,b=inB?val(gB,[s]):null;return{s,a,b,d:a!=null&&b!=null?b-a:null}}).sort((x,y)=>(y.d??-1e15)-(x.d??-1e15));
+  const cg=new Map();[[gA,'a'],[gB,'b']].forEach(([g,k])=>rowsF(g,cs).forEach(x=>{const c=catOf(x.id);if(!cg.has(c))cg.set(c,{a:0,b:0});cg.get(c)[k]+=x.a/dv(g)}));
+  const crow=[...cg].map(([c,v])=>({c,a:v.a,b:v.b,d:v.b-v.a})).sort((x,y)=>y.d-x.d);
+  const pg=new Map();[[gA,'a','qa'],[gB,'b','qb']].forEach(([g,k,q])=>rowsF(g,cs).forEach(x=>{let p=pg.get(x.id);if(!p)pg.set(x.id,p={name:x.name,a:0,b:0,qa:0,qb:0});p[k]+=x.a/dv(g);p[q]+=x.q/dv(g);if(x.name)p.name=x.name}));
+  const prow=[...pg].map(([id,p])=>({id,...p,d:p.b-p.a})),nTop=+(S.wn||10);
+  const up=prow.filter(p=>p.d>0).sort((a,b)=>b.d-a.d).slice(0,nTop),dn=prow.filter(p=>p.d<0).sort((a,b)=>a.d-b.d).slice(0,nTop);
+  const pT=list=>tbl(['Product',wn(gA),wn(gB),'Δ NT$','Δ %'],list.map(p=>[esc(p.name)+'<br><small>'+p.id+' · qty '+f0(p.qa)+' → '+f0(p.qb)+'</small>',f0(p.a),f0(p.b),sg(p.d),p.a==0?'<span class="tag">new</span>':p.b==0?'<span class="tag">no sales</span>':arr(p.d,dp(p.a,p.d))]),[1,2,3,4]);
+  const bU=bt.find(x=>x.d!=null&&x.d>0),bD=bt.filter(x=>x.d!=null&&x.d<0).slice(-1)[0],cU=crow.find(x=>x.d>0),cD=crow.filter(x=>x.d<0).slice(-1)[0];
+  const li=(t,x,u)=>x?`<li>${t}: <b>${esc(x.s||x.c||x.name)}</b> ${sg(x.d)} NT$${u} (${f0(x.a)} → ${f0(x.b)})</li>`:'';
+  const u=mode=='day'?' per day':'';
+  const sum_=`<ul style="margin:4px 0 4px 18px;padding:0"><li><b>${wn(gB)}</b> (${wLab(gB)}) vs <b>${wn(gA)}</b> (${wLab(gA)}): <b>${money(tB)}</b> vs <b>${money(tA)}</b> ${arr(d,dp(tA,d))} (${sg(d)} NT$${u})</li>${li('Branch up most',bU,u)}${li('Branch down most',bD,u)}${li('Category up most',cU,u)}${li('Category down most',cD,u)}${li('Product up most',up[0],u)}${li('Product down most',dn[0],u)}</ul>`;
+  const ov=weeks.map((g,i)=>{const st=stOf(g),days=dOf(g),T=tot(g,st);let dt='–',pt='';if(i>0){const p=weeks[i-1],c=common(p,g);if(c.length){const a=val(p,c),b=val(g,c),dd=b-a;dt=sg(dd);pt=arr(dd,dp(a,dd))}else dt='<small>no common branch</small>'}return[`<b>${wn(g)}</b>`,wLab(g),days,st.length+' of '+nB+(st.length<nB?' <span class="tag">partial</span>':''),f0(T),f0(T/days),dt,pt]});
+  const ovT=tbl(['Week','Dates','Days','Branches','Net sales (NT$)','Per day','Δ vs previous week'+(mode=='day'?' (per day)':''),'Change'],ov,[2,4,5,6]);
+  const chart=cols(weeks.map(g=>[wn(g),tot(g,stOf(g))/dv(g)]));
+  return filt+note+
+   `<div class="kpis">${kpi(wn(gB)+' · '+wLab(gB),money(tB),(mode=='day'?'per day · ':'')+cs.length+' branch'+(cs.length>1?'es':''))}${kpi(wn(gA)+' · '+wLab(gA),money(tA),(mode=='day'?'per day · ':'')+'same branches')}${kpi('Change',`<span class="${d>=0?'up':'dn'}">${sg(d)}</span>`,'NT$'+u)}${kpi('Change %',tA>0?arr(d,d/tA):'-',d>=0?'higher than '+wn(gA):'lower than '+wn(gA))}</div>`+
+   card('What changed?',`<div class="mood">${d>=0?'▲ Sales are up vs the previous week 業績較前一週成長':'▼ Sales are down vs the previous week 業績較前一週下滑'}</div>`+sum_)+
+   card('Week by week (Δ compares each week with the one before, same branches)',ovT+`<h3>Net sales per week${mode=='day'?' (per day)':''}</h3>`+chart)+
+   allW+
+   `<div class="grid">${card('By branch · '+wn(gA)+' → '+wn(gB),tbl(['Branch',wn(gA),wn(gB),'Δ NT$','Change'],bt.map(x=>[esc(x.s),x.a==null?'–':f0(x.a),x.b==null?'–':f0(x.b),x.d==null?'<small>not in both weeks</small>':sg(x.d),x.d==null?'':arr(x.d,dp(x.a,x.d))]),[1,2,3]))}${card('By sub-category (中分類) · '+wn(gA)+' → '+wn(gB),tbl(['Sub-category',wn(gA),wn(gB),'Δ NT$','Change'],crow.map(x=>[esc(x.c),f0(x.a),f0(x.b),sg(x.d),x.a==0?'<span class="tag">new</span>':arr(x.d,dp(x.a,x.d))]),[1,2,3]))}</div>`+
+   `<div class="grid">${card('📈 Products that went up (top '+nTop+')',pT(up))}${card('📉 Products that went down (top '+nTop+')',pT(dn))}</div>`}
+function rWeekly(){
+  const bdA=D.bd||[];if(!bdA.length)return '';
+  const gran=D.bdDaily?(S.gran||'g'):'g',met=S.met||'a',bdS=bdA.filter(x=>!S.store||x.store==S.store),kf=x=>gran=='g'?x.g:x.k,ks=uniq(bdS.map(kf)).sort(),mlab=met=='a'?'net sales (NT$)':'net items sold',unit=gran=='g'?'week':'day';
+  const nDays=k=>uniq(bdS.filter(x=>kf(x)==k).map(x=>x.d).filter(Boolean)).length||(bdS.find(x=>kf(x)==k)?.n||0),lab=k=>gran=='g'?wLab(k)+' · '+nDays(k)+'d':wLab(k);
+  const cm=new Map();bdS.filter(x=>inCatG(x.id)).forEach(x=>{const c=catOf(x.id);if(!cm.has(c))cm.set(c,{});const r=cm.get(c),k=kf(x);r[k]=(r[k]||0)+x[met]});
+  const rows=[...cm].map(([c,r])=>({c,r,t:sum(Object.values(r),v=>v)})).sort((a,b)=>b.t-a.t),ct=ks.map(k=>sum(rows,x=>x.r[k]||0)),gt=sum(ct,v=>v);
+  const ctl=`<div class="filters">${D.bdDaily?sel('gran','Show by',[['g','Week'],['k','Day']],gran):''}${sel('met','Value',[['a','Net sales (NT$)'],['q','Net items sold (qty)']],met)}</div>`;
+  const nc=ks.map((_,i)=>i+1).concat([ks.length+1,ks.length+2]);
+  const mt=tbl(['Sub-category',...ks.map(lab),'Total','Share'],[...rows.map(x=>[esc(x.c),...ks.map(k=>f0(x.r[k]||0)),f0(x.t),pc(x.t/(gt||1))]),['<b>Total</b>',...ct.map(v=>`<b>${f0(v)}</b>`),`<b>${f0(gt)}</b>`,''],['<small>Branches in the data</small>',...ks.map(k=>`<small>${uniq(bdS.filter(x=>kf(x)==k).map(x=>x.store)).length}</small>`),'','']],nc);
+  const stores=D.stores.filter(b=>!S.store||b==S.store);
+  const bt=tbl([gran=='g'?'Week':'Day',...stores.map(esc),'Total'],ks.map(k=>{const r=bdS.filter(x=>kf(x)==k&&inCatG(x.id));return[lab(k),...stores.map(b=>f0(sum(r.filter(x=>x.store==b),x=>x[met]))),f0(sum(r,x=>x[met]))]}),stores.map((_,i)=>i+1).concat([stores.length+1]));
+  return card('📅 Sub-category (中分類) '+mlab+' per '+unit+(S.cat?' · '+esc(S.cat):'')+(S.store?' · '+esc(S.store):' · all branches'),ctl+mt+`<div class="note">Net = sales minus returns. A branch that is not in the data for a period counts as 0, so compare periods only when they have the same branches (see the last row). Use Category → Sub-category → Product above to narrow it down.</div>`)+
+  `<div class="grid">${card('By branch · '+mlab,bt)}${card('Total '+mlab+' per '+unit,cols(ks.map((k,i)=>[gran=='g'?wLab(k):wLab(k),ct[i]])))}</div>`}
+function rSales(){
+  const bn=+(S.bn||3),bdA=D.bd||[],bdW=uniq(bdA.map(x=>x.g)).sort(),brOf=g=>uniq(bdA.filter(x=>x.g==g).map(x=>x.store)),nB=D.stores.length,dOf=g=>uniq(bdA.filter(x=>x.g==g).map(x=>x.d).filter(Boolean)).length||(bdA.find(x=>x.g==g)?.n||0),dTxt=n=>n+' day'+(n>1?'s':'');
+  let pw=S.pw||'';if(pw&&!bdW.includes(pw))pw='';
+  const dayList=uniq(bdA.filter(x=>x.d&&(!pw||x.g==pw)).map(x=>x.d)).sort();let pd=S.pd||'';if(pd&&!dayList.includes(pd))pd='';
+  const per=pd||pw,perRows=pd?bdA.filter(x=>x.d==pd):pw?bdA.filter(x=>x.g==pw):null,covN=perRows?uniq(perRows.map(x=>x.store)).length:0,spA=perRows||D.sp;
+  const pDays=perRows?(uniq(perRows.filter(x=>x.d).map(x=>x.d)).length||Math.max(...perRows.map(x=>x.n))||1):CONFIG.CUR_DAYS,pLabel=pd?'Day '+pd+' ('+wdn(pd)+')':pw?'Week '+wLab(pw)+' ('+dTxt(dOf(pw))+' of data)':CONFIG.CUR_LABEL;
+  const wkn=CONFIG.WEEK_START==1?'Mon–Sun':'Sun–Sat';
+  const perSel=bdA.length?sel('pw','Week ('+wkn+')',[['','All dates (full period)'],...bdW.map(g=>[g,wLab(g)+' · '+dTxt(dOf(g))+' · '+brOf(g).length+' of '+nB+' branches'])],pw)+(D.bdDaily?sel('pd','Day',[['','All days'+(pw?' in this week':'')],...dayList.map(d=>[d,d+' ('+wdn(d)+')'])],pd):''):'';
+  const bdNote=bdA.length?`<div class="note">📅 Sales by date (<b>Paste_Weekly_Sales</b> / <b>By_Date_Product_Sales_Stats</b>): ${bdW.map(g=>{const bb=brOf(g),miss=D.stores.filter(x=>!bb.includes(x));return `<b>${wLab(g)}</b> (${dTxt(dOf(g))}) – ${bb.map(esc).join(', ')}${miss.length?` <b>(not in the data yet: ${miss.map(esc).join(', ')})</b>`:''}`}).join(' · ')}. Pick a <b>Week</b>${D.bdDaily?' or a <b>Day</b> (a Day overrides the Week)':''} to see only that period; a period shows just the branches that are in the data.${D.bdBad?` <b>${D.bdBad} rows had no readable date or store and were skipped.</b>`:''}</div>`:(D.bdRaw?`<div class="note warn">The tab <b>Paste_Weekly_Sales</b> (or <b>By_Date_Product_Sales_Stats</b>) was found, but no rows could be read. For Paste_Weekly_Sales the export must be pasted from column B with the store chosen in column A – see README.</div>`:'');
+  const useSP=false,wks=useSP?[]:uniq(D.sales.map(s=>s.w)).sort(),inCat=inCatG,n=D.stores.length,div=S.store?n:(perRows&&covN<n?n/covN:1);
+  const cats=uniq([...D.prod.keys(),...D.sp.map(x=>x.id)].map(bigOf)).sort(),sw=D.sales.filter(s=>!S.week||s.w==S.week),spS=spA.filter(x=>!S.store||x.store==S.store);
+  let st,tot,tx=0,items,itSub='',tSub='',ptx=0,pa=0;
+  if(useSP){st=[...group(spA,x=>x.store,()=>({amt:0,q:0,sku:new Set()}),(g,x)=>{g.amt+=x.a;g.q+=x.q;if(x.q>0)g.sku.add(x.id)})].sort((a,b)=>b[1].amt-a[1].amt);tot=sum(spS,x=>x.a);items=sum(spS,x=>x.q);itSub=pLabel}
+  else{const ss=sw.filter(s=>!S.store||s.store==S.store);tot=sum(ss,s=>s.amt);tx=sum(ss,s=>s.tx);st=[...group(sw,s=>s.store,()=>({amt:0,tx:0,days:new Set()}),(g,s)=>{g.amt+=s.amt;g.tx+=s.tx;g.days.add(s.d)})].sort((a,b)=>b[1].amt-a[1].amt);
+    if(D.wk.length){items=sum(D.wk.filter(x=>(!S.week||x.w==S.week)&&(!S.store||x.store==S.store)),x=>x.q);itSub='from Product_Sales_Weekly'}else{items=sum([...D.prod.values()],p=>p.q);itSub=`${pLabel}, all branches (product data is not yet weekly / per branch)`}}
+  if(!D.sales.length&&!useSP){{const q=S.store?D.sp.filter(x=>x.store==S.store):D.sp;ptx=sum(q,x=>x.tx);pa=sum(q,x=>x.a)}const src=perRows?perRows.filter(x=>!S.store||x.store==S.store):null;
+    if(src){tot=sum(src,x=>x.a);items=sum(src,x=>x.q);itSub=pLabel;tSub=pLabel+' · from the daily / weekly export';st=[...group(perRows,x=>x.store,()=>({amt:0,tx:0,days:{size:pDays}}),(g,x)=>{g.amt+=x.a})].sort((a,b)=>b[1].amt-a[1].amt)}
+    else{const ss=S.store?D.sp.filter(x=>x.store==S.store):null;tot=ss?sum(ss,x=>x.a):sum([...D.prod.values()],p=>p.a);if(ss)items=sum(ss,x=>x.q);tSub=ss?'branch total from Product_Sales_Stats':'合計 銷售淨額 from Product_Sales_Report · '+CONFIG.CUR_LABEL;st=[...group(D.sp,x=>x.store,()=>({amt:0,tx:0,days:{size:pDays}}),(g,x)=>{g.amt+=x.a})].sort((a,b)=>b[1].amt-a[1].amt)}}
+  const all=sum(st,x=>x[1].amt),base=useSP?[...group(spS,x=>x.id,()=>({q:0,a:0,name:''}),(g,x)=>{g.q+=x.q;g.a+=x.a;g.name=x.name})].map(([id,g])=>({id,...g})):[...D.prod.values()];
+  const P=base.filter(p=>inCat(p.id)),bm=new Map(base.map(p=>[p.id,p])),pr=p=>`${esc(p.name)}<br><small>${p.id}</small>`;
+  const ids=uniq([...bm.keys(),...D.prev.keys()]).filter(inCat).map(id=>{const c=bm.get(id),p=D.prev.get(id),cr=(c?.a||0)/pDays,pr=(p?.a||0)/CONFIG.PREV_DAYS/div;return{name:(c||p).name,cr,pr,d:cr-pr,pc:pr>0?cr/pr-1:null}});
+  const row=x=>[esc(x.name),f0(x.pr),f0(x.cr),chg(x.pc)];
+  const cg=[...group(P,p=>catOf(p.id),()=>({a:0,q:0,pa:0}),(g,p)=>{g.a+=p.a;g.q+=p.q})];D.prev.forEach(p=>{if(!inCat(p.id))return;const g=cg.find(x=>x[0]==catOf(p.id));if(g)g[1].pa+=p.a/div});cg.sort((a,b)=>b[1].a-a[1].a);const ca=sum(cg,x=>x[1].a);
+  let bsSrc,bsLabel;if(D.wk.length&&!per){const wl=uniq(D.wk.map(x=>x.w)).sort(),w=S.week||wl[wl.length-1];bsSrc=[...group(D.wk.filter(x=>x.w==w&&(!S.store||x.store==S.store)),x=>x.id,()=>({q:0,a:0,name:''}),(g,x)=>{g.q+=x.q;g.a+=x.a;g.name=x.name;})].map(([id,g])=>({id,...g}));bsLabel=`Week ${w}${S.store?' · '+S.store:' · all branches'}`}else{bsSrc=base;bsLabel=`${pLabel}${S.store?' · '+S.store:' · all branches'}${D.wk.length||bdA.length?'':' – no weekly data yet'}`}
+  const bc=[...group(bsSrc.filter(p=>inCat(p.id)),p=>catOf(p.id),()=>[],(g,p)=>g.push(p))].map(([c,l])=>[c,l.sort((a,b)=>b.a-a.a).slice(0,bn),sum(l,x=>x.a)]).sort((a,b)=>b[2]-a[2]);
+  const wkTop=(D.wk.length||per)?bsSrc.filter(p=>inCat(p.id)).sort((a,b)=>b.q-a.q).slice(0,10):[];
+  const byBranch=useSP?D.stores.map(b=>[b,[...group(spA.filter(x=>x.store==b&&inCat(x.id)),x=>x.id,()=>({a:0,q:0,name:''}),(g,x)=>{g.a+=x.a;g.q+=x.q;g.name=x.name})].sort((a,c)=>c[1].q-a[1].q).slice(0,5)]):[];
+  const mem=useSP?sum(spS,x=>x.mem)/(sum(spS,x=>x.q)||1):0;
+  return `<div class="filters">${perSel}${wks.length?sel('week','Week (Monday)',[['','All weeks'],...wks.map(w=>[w,w])],S.week):''}${sel('store','Branch',[['','All branches'],...D.stores.map(s=>[s,s])],S.store)}${sel('cat','Category (大分類)',[['','All categories'],...cats.map(c=>[c,c])],S.cat)}${midSel('mid',S.cat,S.mid)}${prodSel()}</div>
+  ${bdNote}
+  <div class="kpis">${kpi('Total sales',money(tot),useSP?pLabel:(D.sales.length?`${uniq(sw.map(s=>s.d)).length} days of data`:tSub))}${useSP?kpi('Total items sold',f0(items),'SKUs sold: '+f0(uniq(spS.filter(x=>x.q>0).map(x=>x.id)).length))+kpi('Average price per item',money(items?tot/items:0))+kpi('Member purchases',perRows?'-':pc(mem),perRows?'not in the daily / weekly export':'of items sold (cash member)'):kpi(D.sales.length?'Total transactions':'Product transactions',f0(D.sales.length?tx:ptx),D.sales.length?'':'Item-lines from Product_Sales_Stats (not receipts)')+kpi(D.sales.length?'Average transaction value':'Avg per product transaction',money(D.sales.length?(tx?tot/tx:0):(ptx?pa/ptx:0)),D.sales.length?'':'Sales ÷ item-lines')+kpi('Total items sold',f0(items),itSub)}${kpi('Best branch',esc(st[0]?.[0]||'-'),st[0]?money(st[0][1].amt):'')}</div>
+  ${useSP?(bdA.length?help('sp1','Why are transactions missing?',`Sales by <b>day, week and category</b> come from <b>Paste_Weekly_Sales</b> / <b>By_Date_Product_Sales_Stats</b> (see the 📅 section below). <b>Transactions and average transaction value</b> still need a daily <b>Sales_Data</b> tab (date × branch), and <b>member purchases</b> is not in that export.`):help('sp1','Why are transactions and weekly trend missing?',`Branch × product data has no dates and no daily transaction counts, so <b>transactions, average transaction value and weekly sales trend</b> need a daily <b>Sales_Data</b> tab (date × branch). Period assumed: <b>${pLabel}</b> – set <code>CUR_DAYS</code> in CONFIG to the real number of days.`)):''}
+  <div class="grid">${card('Comparison of '+(perRows?covN:n)+' branches',useSP?tbl(['Branch','Sales','Items sold','SKUs sold','Avg price/item','Sales/day','Share'],st.map(([b,g])=>[esc(b),f0(g.amt),f0(g.q),f0(g.sku.size),f0(g.q?g.amt/g.q:0),f0(g.amt/pDays),pc(g.amt/(all||1))]),[1,2,3,4,5,6]):tbl(['Branch','Sales','Transactions','Avg txn','Sales/day','Days','Share'],st.map(([b,g])=>[esc(b),f0(g.amt),f0(g.tx),f0(g.tx?g.amt/g.tx:0),f0(g.amt/g.days.size),g.days.size,pc(g.amt/(all||1))]),[1,2,3,4,5,6])+`<div class="note">Use <b>Sales/day</b> for a fair comparison – branches may have a different number of days of data.</div>`)}
+  ${card('Sales by branch',bars(st.map(([b,g])=>[b,g.amt]),money))}</div>
+  ${wks.length?`<div class="grid">${card('Weekly trend by branch',tbl(['Week','Days',...D.stores.map(esc),'Total'],wks.map(w=>{const r=D.sales.filter(s=>s.w==w);return[w,uniq(r.map(s=>s.d)).length,...D.stores.map(b=>f0(sum(r.filter(s=>s.store==b),s=>s.amt))),f0(sum(r,s=>s.amt))]}),D.stores.map((_,i)=>i+1).concat([D.stores.length+1,D.stores.length+2])))}${card('Total sales per week',cols(wks.map(w=>[w.slice(5),sum(D.sales.filter(s=>s.w==w),s=>s.amt)])))}</div>`:''}
+  <div class="grid">${card('🏆 Best-selling products (sales)'+(S.store?' · '+esc(S.store):''),tbl(['Product','Qty','Sales'],[...P].sort((a,b)=>b.a-a.a).slice(0,15).map(p=>[pr(p),f0(p.q),f0(p.a)]),[1,2]))}${card('🏆 Best-selling products (qty)'+(S.store?' · '+esc(S.store):''),tbl(['Product','Qty','Sales'],[...P].sort((a,b)=>b.q-a.q).slice(0,15).map(p=>[pr(p),f0(p.q),f0(p.a)]),[1,2]))}</div>
+  ${useSP?card('Top 5 products per branch (by qty)',tbl(['Branch','Top 5'],byBranch.map(([b,l])=>[esc(b),l.map(([id,g],i)=>`${i+1}. ${esc(g.name)} <small>(${f0(g.q)})</small>`).join('<br>')])) ):''}
+  <div class="grid">${card('⚠ Low demand (sold, but the least)',tbl(['Product','Qty','Sales'],P.filter(p=>p.q>0&&p.a>0).sort((a,b)=>a.q-b.q||a.a-b.a).slice(0,15).map(p=>[pr(p),f0(p.q),f0(p.a)]),[1,2])+`<div class="note">${f0(P.filter(p=>p.q>0&&p.q<=2).length)} products sold ≤2 units in the period.</div>`)}${card('Product sub-categories (中分類)'+(S.cat?' · '+esc(S.cat):''),tbl(['Sub-category (中分類)','Sales','Share','Qty','Sales/day vs '+CONFIG.PREV_LABEL],cg.map(([c,g])=>[esc(c),f0(g.a),pc(g.a/(ca||1)),f0(g.q),chg(g.pa>0?(g.a/pDays)/(g.pa/CONFIG.PREV_DAYS)-1:null)]),[1,2,3]))}</div>
+  <div class="grid">${card('📈 Rising products (sales/day)',tbl(['Product',CONFIG.PREV_LABEL,pLabel,'Δ'],ids.filter(x=>x.d>0).sort((a,b)=>b.d-a.d).slice(0,12).map(row),[1,2,3])+`<div class="note">Compared per day because the periods differ in length (${CONFIG.PREV_DAYS} vs ${pDays} days).${S.store?' Previous period is chain-wide ÷ '+n+' branches (estimate).':''}${!S.store&&perRows&&covN<n?' Only '+covN+' of '+n+' branches are in this period, so the previous period is scaled to the same number of branches (estimate).':''} A short current period and seasonality can distort this.</div>`)}${card('📉 Falling products (sales/day)',tbl(['Product',CONFIG.PREV_LABEL,pLabel,'Δ'],ids.filter(x=>x.d<0).sort((a,b)=>a.d-b.d).slice(0,12).map(row),[1,2,3]))}</div>
+  ${rWeekly()}
+  ${card('Best sellers by category · '+esc(bsLabel),(D.wk.length||bdA.length?(per?'':`<div class="note">Showing the full period. Pick a <b>Week</b>${D.bdDaily?' or a <b>Day</b>':''} at the top of this tab to see best sellers for that period.</div>`):`<div class="note warn">There is no date in the product data, so <b>weekly</b> best sellers cannot be calculated yet. Add a <b>Product_Sales_Weekly</b> tab (see README) and this section automatically becomes weekly + per branch.</div>`)+(wkTop.length?`<h3>Top 10 (qty)</h3>`+tbl(['Product','Qty','Sales'],wkTop.map(p=>[pr(p),f0(p.q),f0(p.a)]),[1,2]):'')+`<h3>Best sellers per sub-category (中分類)${S.cat?' · '+esc(S.cat):''}</h3><div class="filters">${sel('bn','Products per category',[['3','Top 3'],['5','Top 5'],['10','Top 10']],String(bn))}</div>`+tbl(['Sub-category','Sales',...Array.from({length:bn},(_,i)=>'#'+(i+1))],bc.map(([c,l,t])=>[esc(c),f0(t),...Array.from({length:bn},(_,i)=>l[i]?`${esc(l[i].name)} <small>(${f0(l[i].q)})</small>`:'')]),[1]))}`}
+/* ---------- 2. REDEEM ---------- */
+function rRedeem(){
+  const vsAll=D.vs,stores=D.stores,vcats=uniq(vsAll.map(x=>bigOf(x.id))).sort(),VS=vsAll.filter(x=>(!S.ps||x.store==S.ps)&&(!S.pk||bigOf(x.id)==S.pk)&&(!S.pm||midOf(x.id)==S.pm));
+  const vsEst=x=>{const k=nk(x.name);let g=D.vAvg.get(k);if(!g&&k.length>5)for(const [kk,v] of D.vAvg)if(kk.length>5&&(kk.includes(k)||k.includes(kk))){g=v;break}return g?x.q*g.p/g.n:null};
+  const rows=VS.map(x=>{const i=pinfo(x.id);return{...x,price:i.price,cost:i.cost,pay:x.q*i.cost,val:x.q*i.price,est:vsEst(x),cat:midOf(x.id)}});
+  const vq=sum(rows,x=>x.q),vPay=sum(rows,x=>x.pay),vVal=sum(rows,x=>x.val),vEst=sum(rows.filter(x=>x.est!=null),x=>x.est),vUm=sum(rows.filter(x=>x.est==null),x=>x.q);
+  const storeQ={};D.sp.forEach(x=>storeQ[x.store]=(storeQ[x.store]||0)+x.q);const allQ=S.ps?(storeQ[S.ps]||0):sum(Object.values(storeQ),v=>v);
+  const G=(kf,init)=>[...group(rows,kf,()=>({q:0,pay:0,val:0,e:0,um:0,name:'',price:0,cost:0}),(g,x)=>{g.q+=x.q;g.pay+=x.pay;g.val+=x.val;if(x.est==null)g.um+=x.q;else g.e+=x.est;g.name=x.name;g.price=x.price;g.cost=x.cost})].sort((a,b)=>b[1].q-a[1].q);
+  const byStore=G(x=>x.store),byCat=G(x=>x.cat),byProd=G(x=>x.id),estT=g=>f0(g.e)+(g.um?' <small>(+'+g.um+' unmatched)</small>':'');
+  const tPay=th('Budget used (成本)','Cost (成本) × vouchers. The money we spent on the products we gave away.'),tVal=th('What we lose (售價)','Selling price (售價) × vouchers. What customers would normally have paid us.'),tEst=th('Est. points','Estimate: vouchers used × average points of the same voucher in the points log.');
+  const top=byStore[0];
+  const s1=`<h2 style="margin:6px 0">1. Voucher redemption by branch <small>(vouchers used at the till)</small></h2>
+  ${vsAll.length?'':'<div class="note warn">No voucher data found. Add a tab named <b>Voucher_Redemptions_By_Store</b> to the Google Sheet (see README).</div>'}
+  <div class="filters">${sel('ps','Branch',[['','All branches'],...stores.map(m=>[m,m])],S.ps)}${sel('pk','Category (大分類)',[['','All categories'],...vcats.map(m=>[m,catLabel(m)])],S.pk)}${midSel('pm',S.pk,S.pm,midLabel)}</div>
+  ${help('r1','What do these numbers mean?',`“We” = the office; the branches are ours. A customer used a voucher, so we handed over a product for free. <b>Budget used</b> = what that product cost us (成本). <b>What we lose</b> = what it would have sold for (售價). Data: voucher use per branch for <b>${CONFIG.VS_MONTH}</b> from the POS (tab <b>Voucher_Redemptions_By_Store</b>).`)}
+  <div class="kpis">${kpi('Vouchers used',f0(vq),S.ps?esc(S.ps):'all branches')}${kpi('Budget used',money(vPay),'what the products cost us (成本)')}${kpi('What we lose',money(vVal),'what they would normally pay (售價)')}${kpi('Est. points redeemed','≈ '+f0(vEst),vUm?vUm+' vouchers without a points match':'estimate')}${kpi('Voucher share of items sold',allQ?pc(vq/allQ):'-',f0(vq)+' of '+f0(allQ)+' items')}${kpi('Top branch',esc(top?top[0]:'-'),top?top[1].q+' vouchers':'')}</div>
+  <div class="grid">${card('Vouchers used by branch',bars(byStore.map(([k,g])=>[k,g.q]),n=>f0(n)+' vouchers')+tbl(['Branch','Vouchers used',tPay,tVal,tEst,'Share'],byStore.map(([k,g])=>[esc(k),g.q,money(g.pay),money(g.val),estT(g),pc(g.q/(vq||1))]),[1,2,3,4,5]))}
+  ${card('Vouchers by sub-category (中分類)'+(S.pk?' · '+esc(S.pk):''),bars(byCat.map(([k,g])=>[midLabel(k),g.q]),n=>f0(n)+' vouchers')+tbl(['Sub-category','Vouchers used',tPay,tVal,'Share'],byCat.map(([k,g])=>[esc(midLabel(k)),g.q,money(g.pay),money(g.val),pc(g.q/(vq||1))]),[1,2,3,4]))}</div>
+  ${card('Products redeemed with vouchers'+(S.ps?' · '+esc(S.ps):''),tbl(['Product','Vouchers used',th('Selling price (售價)','What the customer normally pays for one unit'),th('Unit cost (成本)','What we pay the supplier for one unit'),tPay,tVal,tEst],byProd.map(([id,g])=>[esc(String(g.name).replace(/^\(單\)/,''))+'<br><small>'+id+'</small>',g.q,f0(g.price),g.cost?f0(g.cost):'-',f0(g.pay),f0(g.val),estT(g)]).concat(byProd.length?[['<b>Total</b>','<b>'+f0(vq)+'</b>','','','<b>'+money(vPay)+'</b>','<b>'+money(vVal)+'</b>','<b>≈ '+f0(vEst)+'</b>']]:[]),[1,2,3,4,5,6]))}
+  ${S.ps?'':card('Top products by branch',tbl(['Branch','Top products (vouchers used)'],byStore.map(([k])=>[esc(k),rows.filter(x=>x.store==k).sort((a,b)=>b.q-a.q).slice(0,4).map(x=>esc(String(x.name).replace(/^\(單\)/,''))+' <small>('+x.q+')</small>').join('<br>')])))}`;
+  // ----- 2. points log (no store info) -----
+  const months=uniq(D.pts.map(r=>r.month)).sort(),srcs=uniq(D.pts.map(r=>r.src)).sort(),types=uniq(D.pts.map(r=>r.type)).sort();
+  const pg=S.pg===undefined?'goods':S.pg,isT=r=>r.cats.some(c=>c.startsWith('Telecom')),F0=D.pts.filter(r=>(!S.pm||r.month==S.pm)&&(!S.pr||r.src==S.pr)&&(!S.pt||r.type==S.pt)),F=F0.filter(r=>!pg||(pg=='goods'?!isT(r):isT(r)));
+  const C0=F0.filter(r=>r.status=='completed'),T0=sum(C0.filter(isT),r=>r.pts),T0n=C0.filter(isT).length,C=F.filter(r=>r.status=='completed'),H=F.filter(r=>r.status=='held'),V=F.filter(r=>r.status=='reversed'),VO=C.filter(r=>r.type=='Voucher'),LE=C.filter(r=>r.type=='LELE Marketplace');
+  const ex=a=>a.flatMap(r=>r.items.map((n,i)=>({...r,prod:n,cat:r.catsM[i],pts:r.pts/r.items.length}))),catg=[...group(ex(C),r=>r.cat,()=>({n:0,p:0}),(g,x)=>{g.n++;g.p+=x.pts})].sort((a,b)=>b[1].p-a[1].p),tot=sum(C,r=>r.pts)||1;
+  const grp=(a,kf)=>[...group(a,kf,()=>({n:0,p:0}),(g,x)=>{g.n++;g.p+=x.pts})].sort((a,b)=>b[1].p-a[1].p),days=uniq(F.map(r=>r.d)).sort(),ds=D.pts.map(r=>r.d).sort(),dr=ds.length?ds[0]+' to '+ds[ds.length-1]:'-';
+  const s2=D.pts.length?`<h2 style="margin:26px 0 6px">2. Points log <small>(all branches together – the points system has no store info)</small></h2>
+  <div class="filters">${sel('pm','Month',[['','All'],...months.map(m=>[m,m])],S.pm)}${sel('pr','Source',[['','All'],...srcs.map(m=>[m,m])],S.pr)}${sel('pt','Redemption type',[['','All'],...types.map(m=>[m,m])],S.pt)}${sel('pg','Item group',[['goods','Goods only (exclude telecom)'],['','All (incl. telecom)'],['tel','Telecom only']],pg)}</div>
+  ${help('r2','About the points log',`Points log covers <b>${dr}</b> (${D.pts.length} transactions). This part is <b>not split by branch</b>. “Redeemed” = status <b>completed</b>; <i>held</i> and <i>reversed</i> are shown separately.${pg=='goods'?' Telecom cards (SIM / top-up) are excluded except in the telecom-share card.':''}</div>
+  <div class="kpis">${kpi('Total points redeemed',f0(sum(C,r=>r.pts)),'status completed')}${kpi('Redemption transactions',f0(C.length))}${kpi('Telecom (SIM / top-up) share',pc(T0/(sum(C0,r=>r.pts)||1)),f0(T0)+' points · '+f0(T0n)+' items')}${kpi('Voucher claims in app',f0(VO.length),f0(sum(VO,r=>r.pts))+' points')}${kpi('LELE marketplace',f0(sum(LE,r=>r.pts)),LE.length+' orders')}${kpi('Held',f0(sum(H,r=>r.pts)),H.length+' transactions')}${kpi('Reversed',f0(sum(V,r=>r.pts)),V.length+(V.length==1?' transaction':' transactions'))}</div>
+  <div class="grid">${card('Daily trend (completed points)',cols(days.map(d=>[d.slice(5),sum(C.filter(r=>r.d==d),r=>r.pts)])))}${card('Monthly trend',cols(months.map(m=>[m,sum(C.filter(r=>r.month==m),r=>r.pts)])))}</div>
+  <div class="grid">${card('Where the points go (by category)',bars(catg.map(([k,g])=>[midLabel(k),g.p]))+tbl(['Category','Items','Points','Share'],catg.map(([k,g])=>[esc(midLabel(k)),g.n,f0(g.p),pc(g.p/tot)]),[1,2,3]))}${card('By source / status',bars(grp(C,r=>r.src).map(([k,g])=>[k+` (${g.n})`,g.p]))+bars([['completed',sum(C,r=>r.pts)],['held',sum(H,r=>r.pts)],['reversed',sum(V,r=>r.pts)]]))}`)}`:'';
+  return s1+s2}
+/* ---------- 3. STOCK & PROMO ---------- */
+function rStock(){
+  const B=D.stores,Hx=S.hx||CONFIG.HEALTHY_X,cats=uniq(D.stock.map(r=>r.big)).sort(),inCat=r=>(!S.cat||r.big==S.cat)&&(!S.mid||(r.mid||'No sub-category · 無中分類')==S.mid);
+  const cls=r=>r.a<=0?(r.safety>0?'Out':'Empty'):r.safety>0&&r.a<r.safety?'Low':r.safety>0&&r.a>=r.safety*Hx?'Healthy':'OK';
+  const rowsAll=D.stock.filter(inCat),rows=rowsAll.filter(r=>B.includes(r.store));rows.forEach(r=>r.st=cls(r));
+  const sale=id=>D.prod.get(id),spx=(id,s)=>D.spIdx.get(id+'|'+s),sq=(id,s)=>D.sp.length?(spx(id,s)?.q||0):(sale(id)?.q||0),sa=(id,s)=>D.sp.length?(spx(id,s)?.a||0):(sale(id)?.a||0),act=r=>r.a>0||sq(r.id,r.store)>0,nWk=uniq(D.wk.map(x=>x.w)).length;
+  const vel=(id,store)=>{if(D.sp.length)return sq(id,store)/CONFIG.CUR_DAYS;if(D.wk.length)return sum(D.wk.filter(x=>x.id==id&&x.store==store),x=>x.q)/(nWk*7);return(sale(id)?.q||0)/CONFIG.CUR_DAYS/B.length};
+  const prods=[...group(rows,r=>r.id,()=>({st:{}}),(g,r)=>{g.id=r.id;g.name=r.name;g.price=r.price;g.big=r.big;g.st[r.store]=r})].map(x=>x[1]);
+  const stocked=prods.filter(p=>B.some(b=>p.st[b]?.a>0)),nb=p=>B.filter(b=>p.st[b]?.a>0).length,allB=stocked.filter(p=>nb(p)==B.length),part=stocked.filter(p=>nb(p)<B.length);
+  const sf=r=>!S.store||r.store==S.store,val=r=>r.a*Math.max(r.price,0);
+  const locs=uniq(rowsAll.map(r=>r.store)),nameLoc=l=>B.includes(l)?esc(l):`<i>${esc(l)}</i>`;
+  const cmp=locs.sort((a,b)=>B.includes(b)-B.includes(a)).map(l=>{const r=rowsAll.filter(x=>x.store==l);r.forEach(x=>x.st=cls(x));const sf2=r.filter(x=>x.safety>0&&act(x));return[nameLoc(l),f0(r.filter(x=>x.a>0).length),f0(sum(r,x=>x.a)),f0(sum(r,val)),r.filter(x=>x.st=='Low'&&act(x)).length,r.filter(x=>x.st=='Out'&&act(x)).length,sf2.length?pc(sf2.filter(x=>x.st=='Healthy').length/sf2.length):'-']});
+  const cg=[...group(rows,r=>r.mid||'No sub-category · 無中分類',()=>({u:0,v:0,low:0,b:{}}),(g,r)=>{g.u+=r.a;g.v+=val(r);if((r.st=='Low'||r.st=='Out')&&act(r))g.low++;g.b[r.store]=(g.b[r.store]||0)+r.a})].sort((a,b)=>b[1].u-a[1].u);
+  const low=rows.filter(r=>(r.st=='Low'||r.st=='Out')&&sf(r)&&sq(r.id,r.store)>0).sort((a,b)=>sa(b.id,b.store)-sa(a.id,a.store));
+  const over=rows.filter(r=>sf(r)&&r.a>0&&r.price>0&&(r.safety==0||r.a>=r.safety*Hx)).map(r=>{const v=vel(r.id,r.store);return{r,v,cover:v>0?r.a/v:Infinity}}).filter(x=>x.cover>CONFIG.SLOW_COVER_DAYS).sort((a,b)=>val(b.r)-val(a.r));
+  const push=rows.filter(r=>sf(r)&&r.st=='Healthy'&&sa(r.id,r.store)>0).sort((a,b)=>sa(b.id,b.store)-sa(a.id,a.store)).slice(0,15);
+  const cov=c=>c==Infinity?'∞ (not selling)':f0(c)+' d',stCls=r=>`<span class="${r.st}">${r.st}</span>`,pn=(n,id)=>`${esc(n)}<br><small>${id}</small>`;
+  return `<div class="filters">${sel('store','Branch (action lists)',[['','All branches'],...B.map(s=>[s,s])],S.store)}${sel('cat','Category (大分類)',[['','All'],...cats.map(c=>[c,c])],S.cat)}${midSel('mid',S.cat,S.mid)}<label>Healthy stock = safety ×<input type="number" step="0.5" min="1" data-k="hx" value="${Hx}"></label></div>
+  ${help('def','What do Low / Out / Healthy mean?',`Definitions: <b>Low</b> = available &lt; safety stock · <b>Out</b> = ≤0 (safety &gt;0) · <b>Healthy</b> = ≥ safety × ${Hx} · negative stock is treated as 0. Low/Out only count “active” SKUs (with stock or sales) so catalog items a branch never sells don’t inflate the numbers. Branches = the ${B.length} stores in Sales_Data; vending machines / other locations appear in italics in the comparison table only.`)}
+  <div class="kpis">${kpi('SKUs in stock (5 branches)',f0(stocked.length))}${kpi('Total units available',f0(sum(rows,r=>r.a)))}${kpi('Stock value (selling price)',money(sum(rows,val)))}${kpi('SKU-branch Low',f0(rows.filter(r=>r.st=='Low'&&act(r)).length),'Out: '+f0(rows.filter(r=>r.st=='Out'&&act(r)).length))}${kpi('Available in all branches',f0(allB.length),'Only some branches: '+f0(part.length))}${kpi('Negative stock records',f0(rows.filter(r=>r.avail<0).length),'needs checking / stock count')}</div>
+  <div class="grid">${card('Stock comparison across branches',tbl(['Location','SKUs in stock','Units','Value','Low','Out','% healthy'],cmp,[1,2,3,4,5,6]))}${card('Stock by sub-category (中分類, units per branch)'+(S.cat?' · '+esc(S.cat):''),tbl(['Sub-category',...B.map(b=>esc(b)),'Total','Low/Out'],cg.map(([c,g])=>[esc(c),...B.map(b=>f0(g.b[b]||0)),f0(g.u),g.low]),B.map((_,i)=>i+1).concat([B.length+1,B.length+2])))}</div>
+  ${card('Products available only in some branches (by highest sales)',tbl(['Product',...B.map(b=>esc(b)),'# branches'],part.sort((a,b)=>(sale(b.id)?.a||0)-(sale(a.id)?.a||0)).slice(0,25).map(p=>[pn(p.name,p.id),...B.map(b=>p.st[b]?.a>0?f0(p.st[b].a):'<span class="dn">✗</span>'),nb(p)+'/'+B.length]),B.map((_,i)=>i+1)))}
+  <div class="grid">${card(`🔻 Needs restock (${low.length} SKU-branch, by sales)`,tbl(['Product','Branch','Stock','Safety','Days of cover','Suggested order'],low.slice(0,30).map(r=>{const v=vel(r.id,r.store);return[pn(r.name,r.id),esc(r.store),`<span class="${r.st}">${f0(r.a)}</span>`,f0(r.safety),v>0?f0(r.a/v)+' d':'-',f0(Math.max(Math.ceil(r.safety*Hx-r.a),0))]}),[2,3,4,5])+`<div class="note">Only products with sales are listed. Suggested order = quantity to reach the healthy level.</div>`)}
+  ${card(`🏷 Promo candidates: overstock / slow-moving (${over.length})`,tbl(['Product','Branch','Stock','Value','Cover','Suggestion'],over.slice(0,30).map(x=>[pn(x.r.name,x.r.id),esc(x.r.store),f0(x.r.a),f0(val(x.r)),cov(x.cover),x.v==0?'Clearance / bundling':'Light discount']),[2,3,4])+`<div class="note">Cover = stock ÷ daily sales ${(D.wk.length||D.sp.length)?'(per branch)':'(estimate: total sales ÷ '+B.length+' branches, because product data is not yet per branch)'}. Threshold: &gt;${CONFIG.SLOW_COVER_DAYS} days.</div>`)}</div>
+  ${card('⭐ Best sellers with healthy stock – good for promo / feature',tbl(['Product','Branch','Stock','Qty sold','Sales'],push.map(r=>[pn(r.name,r.id),esc(r.store),f0(r.a),f0(sq(r.id,r.store)),f0(sa(r.id,r.store))]),[2,3,4]))}`}
+/* ---------- 4. PROMO CALCULATOR ---------- */
+const BD0={min:199,price:39,n:100,support:0,extra:0,margin:20};
+function gcalc(g){const pay=g.bq*g.bp,retail=g.bq*g.bp+g.fq*g.fp,cost=g.bq*g.bc+g.fq*g.fc,off=Math.max(g.fq*g.fp-g.support,0),prof=pay+g.support-cost,mN=g.bp-g.bc,hc=g.bc>0&&g.fc>0;return{pay,retail,cost,off,prof,hc,pct:retail?g.fq*g.fp/retail:0,totOff:off*g.sets,net:hc?g.sets*prof-g.base*mN:null,be:hc?(prof>0?Math.ceil(g.base*mN/prof):Infinity):null}}
+function addBogo(buy,free,bq,fq){loadPl();const b=findId(buy);if(!b)return;const f=findId(free)||b,bi=pinfo(b),fi=pinfo(f),base=Math.round(bi.vel*(S.pdays||7));S.bg.push({bid:b,bname:bi.name,bp:bi.price,bc:bi.cost,bq:bq||1,fid:f,fname:fi.name,fp:fi.price,fc:fi.cost,fq:fq||1,support:0,base,sets:base});savePl()}
+function loadPl(){if(!S.pl){try{S.pl=JSON.parse(localStorage.getItem('xmart_promo')||'[]')}catch(e){S.pl=[]}try{const o=JSON.parse(localStorage.getItem('xmart_bundle')||'{}');S.bd={...BD0,...(o.bd||{})};S.bl=o.bl||[];S.bg=o.bg||[]}catch(e){S.bd={...BD0};S.bl=[];S.bg=[]}}}
+function savePl(){try{localStorage.setItem('xmart_promo',JSON.stringify(S.pl));localStorage.setItem('xmart_bundle',JSON.stringify({bd:S.bd,bl:S.bl,bg:S.bg||[]}))}catch(e){}}
+function pinfo(id){if(!D.pinfo){D.pinfo=new Map();D.stock.forEach(r=>{const o=D.pinfo.get(r.id)||{name:r.name,price:0,cost:0};if(r.price>0&&!o.price)o.price=r.price;if(r.cost>0&&!o.cost)o.cost=r.cost;D.pinfo.set(r.id,o)})}
+  const o=D.pinfo.get(id)||{},p=D.prod.get(id);return{ok:!!(D.pinfo.get(id)||p),name:o.name||p?.name||id,price:o.price||(p&&p.q>0?Math.round(p.a/p.q):0),cost:o.cost||0,vel:(p?.q||0)/CONFIG.CUR_DAYS}}
+function findId(txt){txt=String(txt||'').trim();if(!txt)return '';let id=txt.split(/\s/)[0];if(pinfo(id).ok)return id;const q=nk(txt),f=[...D.prod.values()].find(p=>nk(p.name).includes(q));return f?f.id:''}
+function addLine(txt){loadPl();const id=findId(txt);if(!id)return;const i=pinfo(id),base=Math.round(i.vel*(S.pdays||7));S.pl.push({id,name:i.name,price:i.price,promo:Math.round(i.price*0.8),cost:i.cost,support:0,base,units:base*2});savePl()}
+function addComp(txt,qty=1){loadPl();const id=findId(txt);if(!id)return;const i=pinfo(id);S.bl.push({id,name:i.name,qty,price:i.price,cost:i.cost});savePl()}
+function posterExample(){loadPl();S.bd={...BD0};S.bl=[];[['X070060900077',1],['X070020200059',1],['X070060200001',2],['X070020500002',1],['X070020300002',2],['X060060100019',1]].forEach(([id,q])=>{if(pinfo(id).ok)addComp(id,q)});savePl()}
+function suggestIds(){const B=D.stores,m=new Map();D.stock.filter(r=>B.includes(r.store)&&r.a>0&&r.price>0).forEach(r=>{const g=m.get(r.id)||{a:0,v:0};g.a+=r.a;g.v+=r.a*r.price;m.set(r.id,g)});
+  return [...m].filter(([id,g])=>g.a/(((D.prod.get(id)?.q||0)/CONFIG.CUR_DAYS)||1e-9)>CONFIG.SLOW_COVER_DAYS).sort((a,b)=>b[1].v-a[1].v).slice(0,5).map(x=>x[0])}
+var th=(t,tip)=>`<span title="${esc(tip)}" style="cursor:help;border-bottom:1px dotted">${t}</span>`,sgn=n=>(n<0?'−':'')+'NT$ '+f0(Math.abs(n));
+const sec=t=>`<tr><td colspan="3" style="padding-top:10px"><small><b>${t}</b></small></td></tr>`,mrow=(l,per,tot)=>`<tr><td class="lbl">${l}</td><td class="n">${per===''?'':per}</td><td class="n"><b>${tot}</b></td></tr>`,mtab=r=>`<table style="max-width:680px"><tr><th></th><th class="n">for 1</th><th class="n">for all</th></tr>${r.join('')}</table>`;
+const vs_=(n,hc)=>hc?`<span class="${n<0?'dn':'up'}">${n<0?'−':'+'}NT$ ${f0(Math.abs(n))} ${n<0?'less':'more'} than normal</span>`:'<small>enter cost (成本)</small>';
+const pm=(key,figs,tb)=>`<div class="psum">${figs.map(f=>`<div><small>${f[0]}</small><b>${f[1]}</b>${f[2]?`<small>${f[2]}</small>`:''}</div>`).join('')}</div><details class="pm" data-h="${key}" ${(S.help&&S.help[key]!==undefined?S.help[key]:S.pmAll)?'open':''}><summary>Details (full calculation)</summary>${tb}</details>`;
+const vsF=(d,hc)=>hc?`<span class="${d<0?'dn':'up'}">${sgn(d)}</span>`:'-';
+function mm(o){ // o: {key, per:{spend,paid,supp,would}, k, base, baseProfit, hc, unit}
+  const p=o.per,k=o.k,lose1=p.would-p.paid-p.supp,left1=p.paid+p.supp-p.spend,get1=p.paid+p.supp,dN=left1*k-o.baseProfit;
+  const tb=mtab([sec('MONEY WE SPEND'),mrow('<b>Budget needed</b> – we pay for what we hand out (成本)',o.hc?f0(p.spend):'-',o.hc?money(p.spend*k):'enter cost'),
+   sec('MONEY WE GET FROM PROMO SALES'),mrow('Customers pay us (promo price)',f0(p.paid),money(p.paid*k)),mrow('Supplier gives us',f0(p.supp),money(p.supp*k)),mrow('<b>Total money we get from the promo</b>',f0(get1),money(get1*k)),
+   sec('WHAT WE LOSE'),mrow('If there was no promo, customers would pay (售價)',f0(p.would),money(p.would*k)),mrow('<b>What we lose</b> (that minus what customers and supplier pay)',f0(lose1),money(lose1*k)),
+   sec('RESULT'),mrow('Money left (money we get − budget needed)',o.hc?sgn(left1):'-',o.hc?sgn(left1*k):'-'),
+   mrow('Without the promo we would have earned (normal price − 成本) × '+f0(o.base),'',o.hc?sgn(o.baseProfit):'-'),
+   mrow('<b>Promo vs normal</b>','',o.hc?vs_(dN,true):'-'),
+   mrow('Number to sell to earn the same as normal','',o.hc?(left1>0?f0(Math.ceil(o.baseProfit/left1))+' '+o.unit:'<small>never – sold for less than we paid</small>'):'-')]);
+  return pm(o.key,[['Budget needed',o.hc?money(p.spend*k):'-','成本 × '+f0(k)+' '+o.unit],['Money we get',money(get1*k),'from promo sales'],['What we lose',money(lose1*k),'vs normal price'],['Promo vs normal',vsF(dN,o.hc),o.hc?(dN<0?'less than normal':'more than normal'):'enter cost']],tb)}
+const mres=(per,k,base,baseProfit,hc)=>{const left1=per.paid+per.supp-per.spend;return{spend:per.spend*k,lose:(per.would-per.paid-per.supp)*k,net:hc?left1*k-baseProfit:null,below:hc&&left1<0}};
+function rPromo(){loadPl();
+  const inp=(a,v,w=76)=>`<input type="number" step="any" ${a} value="${v}" style="min-width:0;width:${w}px">`,lab=(t,x)=>`<label>${t}${x}</label>`,b=S.bd;
+  // ---- A ----
+  const A=S.pl.map(l=>{const hc=l.cost>0,per={spend:l.cost,paid:l.promo,supp:l.support,would:l.price},bp=l.base*(l.price-l.cost);return{l,hc,per,bp,r:mres(per,l.units,l.base,bp,hc)}});
+  const aCards=A.map(({l,hc,per,bp},i)=>card(`${esc(l.name)} <small>${l.id}</small> <button data-act="del" data-i="${i}" style="float:right">✕ remove</button>`,
+   `<div class="filters">${lab('Normal price (售價)',inp(`data-pl="${i}|price"`,l.price))}${lab('Promo price',inp(`data-pl="${i}|promo"`,l.promo))}${lab('Cost (成本)',inp(`data-pl="${i}|cost"`,l.cost))}${lab('Supplier gives per piece',inp(`data-pl="${i}|support"`,l.support))}${lab('Pieces sold WITHOUT promo',inp(`data-pl="${i}|base"`,l.base))}${lab('Pieces sold WITH promo',inp(`data-pl="${i}|units"`,l.units))}</div>`+mm({key:'pmA'+i,per,k:l.units,base:l.base,baseProfit:bp,hc,unit:'pieces'}))).join('');
+  const aK=kpi('Products in promo',A.length)+kpi('Budget needed',A.some(x=>x.hc)?money(sum(A.filter(x=>x.hc),x=>x.r.spend)):'-','what the pieces cost us (成本)')+kpi('Money we get',money(sum(A,x=>(x.per.paid+x.per.supp)*x.l.units)),'from promo sales')+kpi('What we lose',money(sum(A,x=>x.r.lose)),'vs normal price (售價)')+kpi('Promo vs normal',A.some(x=>x.hc)?sgn(sum(A.filter(x=>x.hc),x=>x.r.net)):'-',A.some(x=>x.hc)?(sum(A.filter(x=>x.hc),x=>x.r.net)>=0?'we earn MORE than without promo':'we earn LESS than without promo'):'enter cost')+kpi('Sold for less than we paid',A.filter(x=>x.r.below).length,'products');
+  // ---- B ----
+  const L=S.bl,retail=sum(L,x=>x.qty*x.price),cost=sum(L,x=>x.qty*x.cost),hcB=L.length>0&&L.every(x=>x.cost>0),perB={spend:cost,paid:b.price,supp:b.support,would:retail},bpB=0,basket=b.n*b.extra*b.margin/100,leftB=(b.price+b.support-cost)*b.n;
+  const bRows=L.map((x,i)=>[`${esc(x.name)}<br><small>${x.id}</small>`,inp(`data-bl="${i}|qty"`,x.qty,56),inp(`data-bl="${i}|price"`,x.price),inp(`data-bl="${i}|cost"`,x.cost),f0(x.qty*x.price),f0(x.qty*x.cost),`<button data-act="delc" data-i="${i}">✕</button>`]);
+  const getB=(b.price+b.support)*b.n,loseB=(retail-b.price-b.support)*b.n,totB=leftB+basket;
+  const bm=L.length?pm('pmB',[['Budget needed',hcB?money(cost*b.n):'-',f0(b.n)+' bundles · 成本'],['Money we get',money(getB),'from promo sales'],['What we lose',money(loseB),'vs normal price'],['Total result',hcB?`<span class="${totB<0?'dn':'up'}">${sgn(totB)}</span>`:'-',hcB?(totB<0?'we lose money overall':'we earn money overall'):'enter cost']],
+   mtab([sec('MONEY WE SPEND'),mrow('<b>Budget needed</b> – we pay for the items (成本)',hcB?f0(cost):'-',hcB?money(cost*b.n):'enter cost'),sec('MONEY WE GET FROM PROMO SALES'),mrow('Customers pay us (add-on price)',f0(b.price),money(b.price*b.n)),mrow('Supplier gives us',f0(b.support),money(b.support*b.n)),mrow('<b>Total money we get from the promo</b>',f0(b.price+b.support),money(getB)),sec('WHAT WE LOSE'),mrow('If there was no promo, customers would pay for these items (售價)',f0(retail),money(retail*b.n)),mrow('<b>What we lose</b>',f0(retail-b.price-b.support),money(loseB)),sec('RESULT'),mrow('Money left (money we get − budget needed)',hcB?sgn(b.price+b.support-cost):'-',hcB?sgn(leftB):'-'),b.extra&&b.margin?mrow('Extra profit from customers spending more to reach NT$ '+f0(b.min),'',sgn(basket)):'',mrow('<b>Total result</b>','',hcB?`<span class="${totB<0?'dn':'up'}">${sgn(totB)}</span>`:'-')])):'<small>Add the items inside the bundle, or click “Load poster example”.</small>';
+  const bK=kpi('Pieces in the set',sum(L,x=>x.qty))+kpi('Budget needed',hcB?money(cost*b.n):'-',f0(b.n)+' bundles · 成本')+kpi('Money we get',money(getB),'from promo sales')+kpi('What we lose',money((retail-b.price-b.support)*b.n),'vs normal price (售價)')+kpi('Total result',hcB?sgn(leftB+basket):'-',leftB+basket<0&&hcB?'we lose money overall':'');
+  // ---- C ----
+  const C=S.bg.map(g=>{const hc=g.bc>0&&g.fc>0,per={spend:g.bq*g.bc+g.fq*g.fc,paid:g.bq*g.bp,supp:g.support,would:g.bq*g.bp+g.fq*g.fp},bp=g.base*(g.bp-g.bc);return{g,hc,per,bp,r:mres(per,g.sets,g.base,bp,hc)}});
+  const cCards=C.map(({g,hc,per,bp},i)=>card(`Buy ${g.bq} × ${esc(g.bname)} + get ${g.fq} × ${esc(g.fname)} free <button data-act="delg" data-i="${i}" style="float:right">✕ remove</button>`,
+   `<div class="filters">${lab('Buy qty',inp(`data-bg="${i}|bq"`,g.bq,56))}${lab('Free qty',inp(`data-bg="${i}|fq"`,g.fq,56))}${lab('Supplier gives per set',inp(`data-bg="${i}|support"`,g.support))}${lab('Sets WITHOUT promo (pieces of the buy item)',inp(`data-bg="${i}|base"`,g.base,90))}${lab('Sets WITH promo',inp(`data-bg="${i}|sets"`,g.sets))}</div><small>Buy item: 售價 ${f0(g.bp)} · 成本 ${f0(g.bc)} &nbsp;|&nbsp; Free item: 售價 ${f0(g.fp)} · 成本 ${f0(g.fc)}</small>`+mm({key:'pmC'+i,per,k:g.sets,base:g.base,baseProfit:bp,hc,unit:'sets'}))).join('');
+  const cK=kpi('Deals',C.length)+kpi('Budget needed',C.some(x=>x.hc)?money(sum(C.filter(x=>x.hc),x=>x.r.spend)):'-','what we hand out costs us (成本)')+kpi('Money we get',money(sum(C,x=>(x.per.paid+x.per.supp)*x.g.sets)),'from promo sales')+kpi('What we lose',money(sum(C,x=>x.r.lose)),'vs normal price (售價)')+kpi('Promo vs normal',C.some(x=>x.hc)?sgn(sum(C.filter(x=>x.hc),x=>x.r.net)):'-',C.some(x=>x.hc)?(sum(C.filter(x=>x.hc),x=>x.r.net)>=0?'we earn MORE than without promo':'we earn LESS than without promo'):'enter cost')+kpi('Sold for less than we paid',C.filter(x=>x.r.below).length,'deals');
+  const guide=help('guide','How to use this page (and what the words mean)',`<ol style="margin:0;padding-left:20px"><li>Pick the promo type: <b>A</b> price cut, <b>B</b> add-on bundle, <b>C</b> buy X get Y free.</li><li>Search a product. Its normal price (售價) and cost (成本) fill in by themselves.</li><li>Type how many pieces you think will sell. These are your guesses – change them and watch the money change.</li></ol>
+   <ul style="margin:8px 0 0;padding-left:20px"><li><b>售價 (shòujià)</b> = the normal price customers pay.</li><li><b>成本 (chéngběn)</b> = what we pay the supplier.</li><li><b>Budget needed</b> = money we spend on the pieces we sell or hand out in the promo (成本 × pieces).</li><li><b>Money we get</b> = what we receive from the promo sales: what customers pay at the promo price + what the supplier gives us.</li><li>Every product shows a short summary first. Click <b>Details</b> under it to see (or hide) the full calculation, or tick <b>Expand all details</b>.</li><li><b>What we lose</b> = money we would have got at the normal price (售價) but did not get because of the promo.</li><li><b>Money left</b> = money we get − money we spend.</li><li><b>Promo vs normal</b> = money left with the promo − what we would have earned without it. “more” = the promo earns more, “less” = the promo earns less.</li><li><b>Sold for less than we paid</b> = promo price is lower than our cost, so we lose money on every piece.</li><li>The branches are ours (not franchises), so no money moves between office and stores.</li></ul>`);
+  return `<datalist id="plist">${[...D.prod.values()].map(p=>`<option value="${p.id} · ${esc(p.name)}">`).join('')}</datalist>${guide}
+  <h2 style="margin:16px 0 6px">A. Price cut <small>(e.g. a NT$300 item sold for NT$80)</small></h2>
+  <div class="filters"><label>Search product<input id="padd" list="plist" placeholder="type a name or code" style="min-width:260px"></label><label>&nbsp;<button data-act="add" class="pri">+ Add product</button></label><label>&nbsp;<button data-act="sug">+ Suggest overstocked items</button></label><label>&nbsp;<button data-act="clr">Clear</button></label><label>Promo length (days)<input type="number" min="1" data-k="pdays" value="${S.pdays||7}" style="min-width:0;width:70px"></label><label>&nbsp;<span><input type="checkbox" data-k="pmAll" ${S.pmAll?'checked':''} style="min-width:0"> Expand all details</span></label></div>
+  <div class="kpis">${aK}</div>${aCards||'<div class="card"><small>Add a product above.</small></div>'}
+  <h2 style="margin:24px 0 6px">B. Add-on bundle <small>(e.g. spend NT$199, add NT$39 to get a gift set)</small></h2>
+  <div class="filters">${lab('Minimum spend (NT$)',inp('data-bd="min"',b.min))}${lab('Add-on price (NT$)',inp('data-bd="price"',b.price))}${lab('Bundles we expect to give',inp('data-bd="n"',b.n,90))}${lab('Supplier gives per bundle',inp('data-bd="support"',b.support))}${lab('Extra spend per customer to reach the minimum (optional)',inp('data-bd="extra"',b.extra,90))}${lab('Our margin on that extra spend (%)',inp('data-bd="margin"',b.margin))}</div>
+  <div class="filters"><label>Add an item to the bundle<input id="cadd" list="plist" placeholder="type a name or code" style="min-width:260px"></label><label>&nbsp;<button data-act="addc" class="pri">+ Add item</button></label><label>&nbsp;<button data-act="poster">Load poster example</button></label><label>&nbsp;<button data-act="clrb">Clear bundle</button></label></div>
+  <div class="kpis">${bK}</div>
+  ${card('What is inside ONE bundle',tbl(['Item',th('Qty','Pieces of this item in one bundle'),th('Normal price (售價)','Normal price of one piece'),th('Cost (成本)','What we pay for one piece'),'Normal value','Our cost',''],bRows,[1,2,3,4,5])+`<div class="note warn">“Load poster example” guesses the poster items from your stock list. <b>Check each row</b> (e.g. Loacker pack size and the Tayas bulk pack may be other products).</div>`)}
+  ${card('Money for the bundle',bm)}
+  <h2 style="margin:24px 0 6px">C. Buy X get Y free <small>(e.g. buy 1 get 1)</small></h2>
+  <div class="filters"><label>Buy product<input id="gbuy" list="plist" placeholder="type a name or code" style="min-width:240px"></label><label>Free product (empty = same product)<input id="gfree" list="plist" placeholder="optional" style="min-width:240px"></label><label>Buy qty<input id="gbq" type="number" min="1" value="1" style="min-width:0;width:70px"></label><label>Free qty<input id="gfq" type="number" min="1" value="1" style="min-width:0;width:70px"></label><label>&nbsp;<button data-act="addg" class="pri">+ Add deal</button></label><label>&nbsp;<button data-act="clrg">Clear</button></label></div>
+  <div class="kpis">${cK}</div>${cCards||'<div class="card"><small>Add a deal above (leave “Free product” empty for buy 1 get 1).</small></div>'}`}
+/* ---------- shell ---------- */
+function render(){document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab==S.tab));const y=scrollY;
+  try{$('#app').innerHTML=S.tab=='sales'?rSales():S.tab=='weekcmp'?rWeekCmp():S.tab=='redeem'?rRedeem():S.tab=='promo'?rPromo():rStock()}catch(e){$('#app').innerHTML='<div class="note warn">Error render: '+esc(e.message)+'</div>';console.error(e)}scrollTo(0,y)}
+document.addEventListener('change',e=>{const dd=e.target.dataset||{};if(dd.bg){const[gi,gf]=dd.bg.split('|');S.bg[+gi][gf]=+e.target.value||0;savePl();render();return}if(dd.bd){S.bd[dd.bd]=+e.target.value||0;savePl();render();return}if(dd.bl){const[bi,bf]=dd.bl.split('|');S.bl[+bi][bf]=+e.target.value||0;savePl();render();return}const pl=e.target.dataset?.pl;if(pl){const[i,f]=pl.split('|');S.pl[+i][f]=+e.target.value||0;savePl();render();return}const k=e.target.dataset?.k;if(k){S[k]=e.target.type=='number'?+e.target.value:e.target.type=='checkbox'?e.target.checked:e.target.value;if(k=='cat'){S.mid='';S.prod=''}if(k=='mid')S.prod='';if(k=='pk')S.pm='';if(k=='pw')S.pd='';if(k=='pmAll'&&S.help)for(const h in S.help)if(h.startsWith('pm'))delete S.help[h];render()}});
+document.addEventListener('click',e=>{const d=e.target.dataset||{};if(d.tab){S.tab=d.tab;render()}else if(d.act=='add'){addLine(document.querySelector('#padd').value);render()}else if(d.act=='sug'){loadPl();suggestIds().forEach(id=>{if(!S.pl.some(l=>l.id==id))addLine(id)});render()}else if(d.act=='del'){S.pl.splice(+d.i,1);savePl();render()}else if(d.act=='clr'){S.pl=[];savePl();render()}else if(d.act=='addg'){addBogo(document.querySelector('#gbuy').value,document.querySelector('#gfree').value,+document.querySelector('#gbq').value,+document.querySelector('#gfq').value);render()}else if(d.act=='delg'){S.bg.splice(+d.i,1);savePl();render()}else if(d.act=='clrg'){S.bg=[];savePl();render()}else if(d.act=='addc'){addComp(document.querySelector('#cadd').value);render()}else if(d.act=='delc'){S.bl.splice(+d.i,1);savePl();render()}else if(d.act=='poster'){posterExample();render()}else if(d.act=='clrb'){S.bl=[];savePl();render()}});
+$('#sheetBtn').hidden=!CONFIG.SHEET_ID;$('#sheetBtn').onclick=()=>window.open('https://docs.google.com/spreadsheets/d/'+CONFIG.SHEET_ID+'/edit','_blank','noopener');
+$('#upBtn').onclick=()=>$('#fileIn').click();$('#fileIn').onchange=e=>{onFiles([...e.target.files]);e.target.value=''};
+$('#upClr').onclick=()=>{Object.keys(UP).forEach(k=>delete UP[k]);if(LAST){build(LAST);showStatus();render()}$('#upMsg').innerHTML=''};
+addEventListener('dragover',e=>e.preventDefault());addEventListener('drop',e=>{e.preventDefault();if(e.dataTransfer&&e.dataTransfer.files.length)onFiles([...e.dataTransfer.files])});
+$('#refresh').onclick=async()=>{$('#refresh').disabled=true;await load();$('#refresh').disabled=false};
+load();
+</script><script>
+/* ===== SEARCH + NEWEST FIRST ===== */
+(()=>{const app=document.getElementById('app'),nav=document.getElementById('nav'),lb=nav.querySelector('label'),qi=document.createElement('input');
+qi.type='search';qi.id='gq';qi.placeholder='🔍 Filter tables 篩選表格…';qi.style.marginLeft='auto';lb.style.marginLeft='12px';nav.insertBefore(qi,lb);
+const run=()=>{const q=qi.value.trim().toLowerCase();app.querySelectorAll('tbody tr').forEach(r=>{r.style.display=!q||r.textContent.toLowerCase().includes(q)?'':'none'})};
+const flip=()=>app.querySelectorAll('.card').forEach(c=>{const h=c.querySelector('h3'),t=c.querySelector('table tbody');if(h&&t&&/^Week by week/.test(h.textContent)&&!t.dataset.r){t.dataset.r=1;[...t.children].reverse().forEach(r=>t.appendChild(r))}});
+qi.addEventListener('input',run);new MutationObserver(()=>{flip();run()}).observe(app,{childList:true,subtree:true})})();
+</script>
+
+
+
+<script>
+/* Xmart theme: EN + 繁中 labels, interactive charts, sortable tables */
+(()=>{const Z={'⬆ Upload file':'⬆ 上傳檔案','✕ Clear uploads':'✕ 清除上傳','📄 Open Google Sheet':'📄 開啟 Google 試算表','⟳ Refresh data':'⟳ 重新整理資料',
+'Total sales':'總銷售額','Total items sold':'總銷售數量','Average price per item':'平均單價','Member purchases':'會員購買','Total transactions':'總交易數','Average transaction value':'平均客單價','Best branch':'最佳門市','Vouchers used':'已使用優惠券','Budget used':'已用預算','What we lose':'讓利金額','Est. points redeemed':'預估兌換點數','Voucher share of items sold':'優惠券佔銷售比例','Top branch':'領先門市','Total points redeemed':'總兌換點數','Redemption transactions':'兌換筆數','Telecom (SIM / top-up) share':'電信(上網卡/儲值)佔比','Voucher claims in app':'App 領券次數','LELE marketplace':'LELE 商城','Held':'保留中','Reversed':'已退回','Total units available':'可用庫存總數','Stock value (selling price)':'庫存價值(售價)','Products in promo':'促銷商品數','Budget needed':'所需預算','Money we get':'預計收入','Total result':'總結果','Deals':'方案數',
+'SKUs in stock (5 branches)':'有庫存品項(5間門市)','SKU-branch Low':'品項×門市 偏低','Available in all branches':'全門市皆有貨','Negative stock records':'負庫存紀錄','Promo vs normal':'促銷 vs 原價','Sold for less than we paid':'低於成本售出','Pieces in the set':'組合內件數','What changed?':'有什麼變化？','Products available only in some branches (by highest sales)':'僅部分門市有貨的商品(依銷售高低)','⭐ Best sellers with healthy stock – good for promo / feature':'⭐ 暢銷且庫存健康 – 適合主打促銷','What is inside ONE bundle':'一組內含什麼','Money for the bundle':'整組金額','Δ vs previous week':'Δ 較上週','Top products (vouchers used)':'熱銷商品(優惠券使用)','# branches':'門市數','Item':'品項','Top 5':'前5名','What the customer normally pays for one unit':'顧客平常購買一件的價格','What we pay the supplier for one unit':'我們向供應商進一件的成本','Pieces of this item in one bundle':'一組內此品項的件數','Normal price of one piece':'單件原價','What we pay for one piece':'單件成本','Change':'增減','Change %':'增減%','Total':'合計','Sales by branch':'各門市銷售','Weekly trend by branch':'各門市每週趨勢','Total sales per week':'每週總銷售','🏆 Best-selling products (sales)':'🏆 暢銷商品(銷售額)','🏆 Best-selling products (qty)':'🏆 暢銷商品(數量)','⚠ Low demand (sold, but the least)':'⚠ 低需求(有售出但最少)','📈 Rising products (sales/day)':'📈 上升商品(日均銷售)','📉 Falling products (sales/day)':'📉 下降商品(日均銷售)','Vouchers used by branch':'各門市優惠券使用','Products redeemed with vouchers':'以優惠券兌換的商品','Top products by branch':'各門市熱銷商品','Daily trend (completed points)':'每日趨勢(已完成點數)','Monthly trend':'每月趨勢','Where the points go (by category)':'點數流向(依分類)','By source / status':'依來源 / 狀態','Stock comparison across branches':'各門市庫存比較','Top 5 products per branch (by qty)':'各門市前5名商品(依數量)',
+'Product':'商品','Week':'週','Dates':'日期','Days':'天數','Branches':'門市數','Net sales (NT$)':'銷售淨額(NT$)','Per day':'每日','Branch':'門市','Sub-category':'中分類','Share':'佔比','Day':'日','Sales':'銷售額','Items sold':'銷售件數','SKUs sold':'售出品項數','Avg price/item':'平均單價','Sales/day':'日均銷售','Transactions':'交易數','Avg txn':'平均客單價','Qty':'數量','Category':'分類','Items':'件數','Points':'點數','Location':'地點','SKUs in stock':'有庫存品項','Units':'數量','Value':'價值','Low':'偏低','Out':'缺貨','% healthy':'健康庫存%','Low/Out':'偏低/缺貨','Stock':'庫存','Safety':'安全庫存','Days of cover':'可售天數','Suggested order':'建議訂貨','Cover':'可售','Suggestion':'建議','Qty sold':'銷售量','Normal value':'原價總值','Our cost':'我們的成本',
+'Compare from':'比較自','Basis':'基準','Show top':'顯示前','Show by':'顯示方式','Week (Monday)':'週(週一)','Month':'月份','Source':'來源','Redemption type':'兌換類型','Item group':'商品群組','Branch (action lists)':'門市(行動清單)','All products':'全部商品','Auto':'自動','All branches':'全部門市','All categories':'全部分類','All dates (full period)':'全部日期(整段期間)','All weeks':'全部週','All':'全部','All (incl. telecom)':'全部(含電信)',
+'1. Voucher redemption by branch':'1. 各門市優惠券兌換','2. Points log':'2. 點數紀錄','A. Price cut':'A. 降價促銷','B. Add-on bundle':'B. 加價購組合','C. Buy X get Y free':'C. 買X送Y','Product transactions':'商品交易筆數','Avg per product transaction':'平均每筆商品交易金額','Item-lines from Product_Sales_Stats (not receipts)':'來自 Product_Sales_Stats 的品項筆數(非發票數)','Sales ÷ item-lines':'銷售額 ÷ 品項筆數','Sort: Original':'排序：原始','Sort: High → Low':'排序：高 → 低','Sort: Low → High':'排序：低 → 高','Sort: A → Z':'排序：A → Z','Show: All':'顯示：全部','Show: Top 5':'顯示：前 5 名','Show: Top 10':'顯示：前 10 名','View: Value':'檢視：數值','View: % share':'檢視：佔比 %','Selected':'已選','Sum':'加總','Avg':'平均','Clear':'清除'};
+const CJK=/[\u3400-\u9fff]/,seen=new WeakMap(),KEY='xm_lang',tk=k=>{try{return localStorage.getItem(k)}catch(e){return null}},sk=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+let mode=tk(KEY)||'both';
+const put=n=>{const r=seen.get(n),z=Z[r.o];r.out=r.l+(mode=='en'?r.o:mode=='zh'?z:r.o+' '+z)+r.t;if(n.nodeValue!==r.out)n.nodeValue=r.out};
+const tr=n=>{const r=seen.get(n),v=n.nodeValue;if(r&&v===r.out)return;const t=v.trim();if(!Z[t]||CJK.test(t)){seen.delete(n);return}const i=v.indexOf(t);seen.set(n,{o:t,l:v.slice(0,i),t:v.slice(i+t.length),out:v});put(n)};
+const walk=root=>{const w=document.createTreeWalker(root,4,{acceptNode:n=>/^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentNode.nodeName)?2:1});let n;while(n=w.nextNode())seen.has(n)?put(n):tr(n)};
+new MutationObserver(ms=>ms.forEach(m=>m.type=='characterData'?tr(m.target):m.addedNodes.forEach(n=>n.nodeType==3?tr(n):n.nodeType==1&&walk(n)))).observe(document.body,{childList:true,subtree:true,characterData:true});
+const box=document.querySelector('header>div:last-child'),lb=document.createElement('button');lb.id='langBtn';box&&box.append(lb);
+const lab=()=>{lb.textContent='🌐 '+{both:'EN + 中文',en:'EN',zh:'中文'}[mode];lb.title='Language 語言'};lab();
+lb.onclick=()=>{mode={both:'en',en:'zh',zh:'both'}[mode];sk(KEY,mode);lab();walk(document.body)};
+walk(document.body);
+const app=document.getElementById('app'),calm=matchMedia('(prefers-reduced-motion:reduce)').matches,num=s=>parseFloat(String(s).replace(/[^\d.\-]/g,'')),fm=n=>n.toLocaleString('en-US',{maximumFractionDigits:1});
+/* ---- interactive charts ---- */
+const rowsOf=f=>{const a=[];for(let e=f;e&&e.classList.contains('br');e=e.nextElementSibling)a.push(e);return a};
+const runOf=r=>{let f=r;while(f.previousElementSibling&&f.previousElementSibling.classList.contains('br'))f=f.previousElementSibling;return rowsOf(f)};
+const val=r=>+r.dataset.v,sel=rs=>rs.filter(r=>r.classList.contains('sel'));
+const SORT=['Sort: Original','Sort: High → Low','Sort: Low → High','Sort: A → Z'],TOP=['Show: All','Show: Top 5','Show: Top 10'],VIEW=['View: Value','View: % share'];
+const btn=(a,t)=>`<button data-a="${a}">${t}</button>`;
+const mkTb=(n,isBar,pct)=>{const d=document.createElement('div');d.className='ctb';d.innerHTML=(isBar?btn('sort',SORT[0])+(n>5?btn('top',TOP[0]):'')+(pct?btn('view',VIEW[0]):''):'')+'<span class="xsum"></span>';d.dataset.s=0;d.dataset.t=0;d.dataset.p=0;return d};
+const sumUp=tb=>{const bar=!!tb.nextElementSibling&&tb.nextElementSibling.classList.contains('br'),items=bar?rowsOf(tb.nextElementSibling):[...tb.nextElementSibling.children],all=items.map(r=>bar?val(r):num(r.querySelector('b').textContent)),s=items.filter(r=>r.classList.contains('sel')),el=tb.querySelector('.xsum');
+ items.forEach(r=>r.classList.toggle('dim',s.length>0&&!r.classList.contains('sel')));
+ if(!s.length){el.textContent='';return}
+ const v=s.map(r=>bar?val(r):num(r.querySelector('b').textContent)),t=v.reduce((a,b)=>a+b,0),T=all.reduce((a,b)=>a+b,0);
+ el.innerHTML=`<b>Selected</b> ${s.length} · <b>Sum</b> ${fm(t)}`+(bar&&T>0?` · ${fm(t/T*100)}%`:` · <b>Avg</b> ${fm(t/s.length)}`)+' <button class="lnk" data-a="clr">Clear</button>'};
+const enhance=()=>{if(!app)return;
+ app.querySelectorAll('.br').forEach(r=>{if(r.previousElementSibling&&r.previousElementSibling.classList.contains('br'))return;const rs=rowsOf(r);if(r.previousElementSibling&&r.previousElementSibling.classList.contains('ctb'))return;
+  const vs=rs.map(x=>x.lastElementChild),ok=vs.every(s=>!/%/.test(s.textContent)&&!isNaN(num(s.textContent)));
+  rs.forEach((x,i)=>{x.dataset.i=i;x.dataset.v=num(x.lastElementChild.textContent)||0;x.lastElementChild.dataset.o=x.lastElementChild.textContent});
+  r.parentNode.insertBefore(mkTb(rs.length,true,ok),r)});
+ app.querySelectorAll('.cols').forEach(c=>{if(!(c.previousElementSibling&&c.previousElementSibling.classList.contains('ctb')))c.parentNode.insertBefore(mkTb(0,false,false),c)});
+ app.querySelectorAll('.kpi b:not([data-d])').forEach(b=>{b.dataset.d=1;if(calm)return;const t=b.textContent,m=t.match(/^(\D*?)([\d,]+)(\D*)$/);if(!m)return;const to=+m[2].replace(/,/g,'');if(!(to>0))return;const t0=performance.now();(function f(n){const p=Math.min(1,(n-t0)/700),v=Math.round(to*(1-Math.pow(1-p,3)));b.textContent=m[1]+v.toLocaleString('en-US')+m[3];if(p<1)requestAnimationFrame(f)})(t0)})};
+let pend=0;if(app){new MutationObserver(()=>{if(pend)return;pend=1;requestAnimationFrame(()=>{pend=0;enhance()})}).observe(app,{childList:true});enhance()}
+const apply=tb=>{const rs=rowsOf(tb.nextElementSibling),s=+tb.dataset.s,t=[0,5,10][+tb.dataset.t],p=+tb.dataset.p,after=rs[rs.length-1].nextSibling,par=rs[0].parentNode,T=rs.reduce((a,r)=>a+val(r),0);
+ const o=rs.slice().sort((a,b)=>s==1?val(b)-val(a):s==2?val(a)-val(b):s==3?a.firstElementChild.textContent.localeCompare(b.firstElementChild.textContent,'zh-TW'):a.dataset.i-b.dataset.i);
+ o.forEach((r,i)=>{par.insertBefore(r,after);r.classList.toggle('hid',!!t&&i>=t);const sp=r.lastElementChild;sp.textContent=p&&T>0?fm(val(r)/T*100)+'%':sp.dataset.o});sumUp(tb)};
+const tip=document.createElement('div');tip.id='xtip';document.body.appendChild(tip);
+addEventListener('pointermove',e=>{const r=e.target.closest&&e.target.closest('.br,.cols>div');if(!r||r.classList.contains('hid')){tip.style.opacity=0;return}let h;
+ if(r.classList.contains('br')){const rs=runOf(r),T=rs.reduce((a,x)=>a+val(x),0),rank=1+rs.filter(x=>val(x)>val(r)).length,vt=r.lastElementChild.dataset.o||r.lastElementChild.textContent;h=`<b>${r.firstElementChild.title||r.firstElementChild.textContent}</b><br>${vt}`+(T>0&&!/%/.test(vt)?` · ${fm(val(r)/T*100)}%`:'')+` · #${rank}/${rs.length}`}
+ else{const b=r.querySelector('b').textContent,v=num(b),pv=r.previousElementSibling?num(r.previousElementSibling.querySelector('b').textContent):NaN,d=pv>0?(v-pv)/pv*100:NaN;h=`<b>${r.querySelector('small').textContent}</b><br>${b}`+(isNaN(d)?'':` · ${d>=0?'▲':'▼'} ${fm(Math.abs(d))}%`)}
+ tip.innerHTML=h;tip.style.opacity=1;const w=tip.offsetWidth;tip.style.left=Math.min(e.clientX+14,innerWidth-w-8)+'px';tip.style.top=(e.clientY+16)+'px'});
+document.addEventListener('click',e=>{const t=e.target;
+ if(t.closest('#nav button')&&app&&!calm){app.classList.remove('swap');void app.offsetWidth;app.classList.add('swap')}
+ const ab=t.closest('.ctb button');if(ab){const tb=ab.closest('.ctb'),a=ab.dataset.a;
+  if(a=='clr'){(tb.nextElementSibling.classList.contains('br')?rowsOf(tb.nextElementSibling):[...tb.nextElementSibling.children]).forEach(x=>x.classList.remove('sel'));sumUp(tb);return}
+  const k={sort:['s',SORT],top:['t',TOP],view:['p',VIEW]}[a];tb.dataset[k[0]]=(+tb.dataset[k[0]]+1)%k[1].length;ab.textContent=k[1][tb.dataset[k[0]]];apply(tb);return}
+ const h=t.closest('.card>h3');if(h){h.parentNode.classList.toggle('shut');return}
+ const th=t.closest('th'),tbl=th&&th.closest('table');
+ if(tbl){const i=[...th.parentNode.children].indexOf(th),d=th.dataset.dir=='asc'?'desc':'asc',rows=[...tbl.rows].filter(r=>!r.querySelector('th')&&r.cells.length>i),fixed=rows.filter(r=>r.cells[0].querySelector('b')),mv=rows.filter(r=>!fixed.includes(r)),v=r=>r.cells[i].textContent.trim();
+  tbl.querySelectorAll('th').forEach(x=>delete x.dataset.dir);th.dataset.dir=d;
+  mv.sort((a,b)=>{const x=num(v(a)),y=num(v(b)),c=(isNaN(x)||isNaN(y))?v(a).localeCompare(v(b),'zh-TW'):x-y;return d=='asc'?c:-c});
+  const p=(mv[0]||{}).parentNode;if(p)[...mv,...fixed].forEach(r=>p.appendChild(r));return}
+ const c=t.closest('.br,.cols>div');if(c){c.classList.toggle('sel');let tb=c.classList.contains('br')?runOf(c)[0].previousElementSibling:c.parentNode.previousElementSibling;if(tb&&tb.classList.contains('ctb'))sumUp(tb);return}
+ const k=t.closest('.kpi');if(k&&!calm){k.classList.remove('sq');void k.offsetWidth;k.classList.add('sq');return}
+ const r=t.closest('td')&&t.closest('tr');if(r&&!t.closest('a,select,input,button'))r.classList.toggle('pk')});
+/* cheer-up bear */
+const bt=document.createElement('button'),tt=document.createElement('div'),msg=['Keep going! 加油！','Great work today 今天也辛苦了','Numbers look good 數字看起來不錯','Coffee break? ☕ 喝杯咖啡休息一下','You got this 你可以的'];let k=0,h;
+bt.id='mascot';bt.title='Cheer me up 幫我加油';bt.setAttribute('aria-label','Cheer me up');bt.textContent='🧸';tt.id='mtoast';tt.setAttribute('role','status');
+bt.onclick=()=>{tt.textContent=msg[k++%msg.length];tt.classList.add('on');clearTimeout(h);h=setTimeout(()=>tt.classList.remove('on'),2600)};
+document.body.append(bt,tt);
+})();
+</script>
+</body></html>
